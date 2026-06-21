@@ -37,11 +37,11 @@ func (s *Store) CreateApplication(ctx context.Context, a *Application, emailNorm
 		`INSERT INTO applications
 		   (id, token_id, email, email_normalized, username, username_normalized,
 		    review_text, requested_services, status, captcha_provider, submitted_ip,
-		    created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		    approved_profile_id, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		a.ID, a.TokenID, a.Email, emailNorm, a.Username, usernameNorm,
 		a.ReviewText, jsonArray(a.RequestedServices), a.Status, a.CaptchaProvider, a.SubmittedIP,
-		a.CreatedAt, a.UpdatedAt)
+		a.ApprovedProfileID, a.CreatedAt, a.UpdatedAt)
 	return err
 }
 

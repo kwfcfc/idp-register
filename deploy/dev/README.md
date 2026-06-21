@@ -3,8 +3,9 @@
 # Local IdP test setup (Rauthy)
 
 The simplest way to exercise idp-register end-to-end against a real OIDC IdP.
-Compose runs **only Rauthy** (HTTP, `:8080`), fully bootstrapped on first boot;
-idp-register runs on the **host** at `:8081`.
+Compose runs **Rauthy** (HTTP, `:8080`) plus **Mailcrab** (`:1080`) for captured
+test email. Rauthy is fully bootstrapped on first boot; idp-register runs on the
+**host** at `:8081`.
 
 ## Why idp-register runs on the host, not in compose
 
@@ -21,13 +22,14 @@ mismatch. (Putting idp-register in the same compose network would make it resolv
 | Admin login | `admin@localhost` / `TestAdmin1234!` |
 | OIDC client | `idp-register` (redirect `http://localhost:8081/auth/callback`) |
 | Provisioning API key | `idp-register` (Users: read/create/update) |
+| Captured email | Mailcrab at `http://localhost:1080/` |
 
 All secrets are throwaway test values.
 
 ## Steps
 
 ```sh
-# 1. Start Rauthy (first boot bootstraps the admin, API key, and OIDC client)
+# 1. Start Rauthy + Mailcrab (first boot bootstraps the admin, API key, and OIDC client)
 docker compose -f deploy/dev/docker-compose.yml up -d
 docker compose -f deploy/dev/docker-compose.yml logs -f rauthy   # wait for "listening"
 
@@ -43,6 +45,7 @@ Then:
 - **Admin** — http://localhost:8081/login → "登录" → Rauthy login
   (`admin@localhost` / `TestAdmin1234!`). idp-register authorizes this account via
   `OIDC_ADMIN_EMAILS`.
+- **Captured mail** — http://localhost:1080/
 - **Provisioning test** — mint an invite code in the admin UI, submit the public
   form with it; idp-register calls the Rauthy API to create the user. Verify in
   Rauthy's own admin UI at http://localhost:8080/auth/v1/admin.
@@ -57,8 +60,18 @@ rm -f idp-register-dev.db                                 # wipes idp-register's
 ## Verified (Rauthy 0.35.2, arm64 macOS / Docker linux/arm64)
 
 Booted clean: image is multi-arch (no arch issue on Apple Silicon), `clients.json`
-bootstrapped ("Migrated 1 clients"), API key returns 200 on `/auth/v1/users`, and
-idp-register completes OIDC discovery + `/auth/login` 302-redirects to Rauthy.
+bootstrapped ("Migrated 1 clients"), API key returns 200 on `/auth/v1/users`,
+Rauthy connects to Mailcrab SMTP, and idp-register completes OIDC discovery +
+`/auth/login` 302-redirects to Rauthy.
+
+Mail behavior verified on 2026-06-21:
+
+- `POST /auth/v1/users` with `roles: []` creates the user and sends one Mailcrab
+  message with subject `Rauthy IAM - New Password` and a `type=new_user` set-password
+  link.
+- `POST /auth/v1/users/request_reset` with only `email` returns 400
+  (`missing field pow`) and sends no mail. This is true both with and without the
+  provisioning API key.
 
 ## Gotchas found on first boot (read before migrating to another machine)
 

@@ -131,15 +131,18 @@ epoch-ms `INTEGER` timestamps, JSON-in-`TEXT` for lists (`groups`, `requested_se
 type Provisioner interface {
     FindUserByEmail(ctx context.Context, email string) (*User, bool, error)
     CreateUser(ctx context.Context, in NewUser) (userID string, err error)
-    // Trigger credential setup. Some IdPs send their own email (Rauthy); others
-    // return a reset link this service must deliver (Kanidm). Hence the optional link.
-    InitCredentials(ctx context.Context, userID string) (resetLink *string, err error)
+    // Trigger credential setup if CreateUser did not already do it. Some IdPs
+    // send their own email; others return a reset link this service must deliver.
+    InitCredentials(ctx context.Context, userID, email string) (resetLink *string, err error)
 }
 ```
 
-- **Rauthy**: `POST /users` (silent create) then trigger the set-password/reset email;
-  `PUT /users/{id}/self/preferred_username`; `GET /users/email/{email}`. Auth header
-  `API-Key <name>$<secret>`. (Confirmed: `POST /users` does **not** send mail by itself.)
+- **Rauthy 0.35.2**: `POST /users` creates the user and, when SMTP is configured,
+  sends the initial "New Password" activation email with a `type=new_user` reset link.
+  `POST /users/request_reset` is the public password-reset path and requires a `pow`
+  payload even with an API key, so the Rauthy `InitCredentials` implementation is a
+  no-op for newly created users. `PUT /users/{id}/self/preferred_username`;
+  `GET /users/email/{email}`. Auth header `API-Key <name>$<secret>`.
 - **Kanidm** (planned): create person, then issue a credential-reset token/URL that this
   service emails. `InitCredentials` returns the link.
 

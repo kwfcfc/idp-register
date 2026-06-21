@@ -43,13 +43,32 @@ Make the admin panel and public form actually drive M1.
 
 ### M3 — First end-to-end smoke test of the whole flow 🔄
 The "第一版测试": prove the complete chain against the local Rauthy harness.
-- ⬜ Admin creates a profile from real Rauthy groups → marks it public.
-- ⬜ Public user submits the form selecting that service.
-- ⬜ Admin approves with a profile → user is provisioned in Rauthy with the right groups →
-  activation email path exercised.
-- ⬜ Invite-code auto-approval path (token bound to a profile) exercised.
+
+Harness plumbing is now **verified working** (2026-06-21): admin OIDC login completes
+(needed adding **S256 PKCE** to the RP — Rauthy's client requires `code_challenge`) and
+`GET /api/admin/groups` returns the live catalog (needed the bootstrap API key's
+`Groups:read`, which only takes effect after a `docker compose down -v` volume reset — the
+key is create-if-absent). Both gotchas are captured in the dev-harness notes.
+
+Remaining (the actual flow, not yet captured as a repeatable test):
+- ✅ Admin creates a profile from real Rauthy groups → marks it public.
+- ✅ Public user submits the form selecting that service.
+- ✅ Admin approves with a profile → user is provisioned in Rauthy with the right groups.
+  Mailcrab-backed testing showed Rauthy 0.35.2 sends the `type=new_user` set-password
+  email directly from `POST /users` when SMTP is configured.
+- ✅ `POST /users/request_reset` tested separately: it requires `pow` and sends no mail
+  when only `email` is provided, even with the provisioning API key. The Rauthy
+  provisioner therefore treats `InitCredentials` as a no-op for newly created users.
+- 🔄 Invite-code auto-approval path (token bound to a profile) exercised through
+  Rauthy user creation + group assignment. The run also found and fixed the app-side
+  bug where `approved_profile_id` was not persisted during auto-approval application
+  creation.
 - ⬜ Capture as a repeatable script/integration test (httptest + a Rauthy stub, plus a
   manual checklist against `deploy/dev/`).
+
+> **Uncommitted:** the M1 backend + M2 frontend work (incl. the PKCE fix) is all in the
+> working tree, not yet committed. Commit before/with M3 so the smoke-test baseline is
+> reproducible.
 
 ### M4 — Multi-select services 🧊
 Deferred from ADR-0012. Needs union-of-groups provisioning and storing multiple approved

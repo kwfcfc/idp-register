@@ -178,3 +178,29 @@ func TestExpiredTokenRejected(t *testing.T) {
 		t.Fatalf("expired token must not reserve")
 	}
 }
+
+func TestCreateApplicationPersistsApprovedProfile(t *testing.T) {
+	ctx := context.Background()
+	s := openTestStore(t)
+
+	profileID := "developer"
+	app := &Application{
+		ID:                uuid.NewString(),
+		Email:             "auto@example.test",
+		Username:          "auto",
+		Status:            StatusProvisioning,
+		ApprovedProfileID: &profileID,
+		RequestedServices: []string{profileID},
+	}
+	if err := s.CreateApplication(ctx, app, "auto@example.test", "auto"); err != nil {
+		t.Fatalf("create application: %v", err)
+	}
+
+	got, err := s.GetApplication(ctx, app.ID)
+	if err != nil {
+		t.Fatalf("get application: %v", err)
+	}
+	if got.ApprovedProfileID == nil || *got.ApprovedProfileID != profileID {
+		t.Fatalf("approved profile was not persisted: %+v", got.ApprovedProfileID)
+	}
+}

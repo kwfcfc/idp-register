@@ -51,12 +51,13 @@ type Provisioner interface {
 	// FindUserByEmail returns the user and true if one exists, false if not.
 	FindUserByEmail(ctx context.Context, email string) (*User, bool, error)
 
-	// CreateUser creates the user silently (no email) and returns its IdP id.
+	// CreateUser creates the user and returns its IdP id. Some providers may
+	// send the initial credential setup email as part of creation.
 	CreateUser(ctx context.Context, in NewUser) (userID string, err error)
 
-	// InitCredentials triggers credential setup (password/passkey) for the
-	// user. Some IdPs send their own activation email and return nil (Rauthy);
-	// others return a reset link this service must deliver (Kanidm). Hence the
-	// optional *string return.
+	// InitCredentials triggers credential setup (password/passkey) when the
+	// provider did not already do it during CreateUser. Some IdPs send their own
+	// activation email and return nil; others return a reset link this service
+	// must deliver. Hence the optional *string return.
 	InitCredentials(ctx context.Context, userID, email string) (resetLink *string, err error)
 }

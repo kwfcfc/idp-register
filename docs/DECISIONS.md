@@ -80,8 +80,9 @@ create-user + credential-reset APIs.
 
 **Decision.** All user creation goes through a **`Provisioner` interface**. Provider code
 is isolated per implementation. `InitCredentials` returns an **optional reset link** so the
-interface fits both "IdP sends its own email" (Rauthy) and "IdP returns a link we email"
-(Kanidm).
+interface fits both "IdP sends its own email" and "IdP returns a link we email" (Kanidm).
+For Rauthy 0.35.2 specifically, the initial credential email is sent by `POST /users`
+when SMTP is configured, and the public `request_reset` endpoint requires PoW.
 
 **Consequences.** Swappable backends; no Rauthy assumptions leak out. Cost: a small
 abstraction overhead and per-provider conformance tests.

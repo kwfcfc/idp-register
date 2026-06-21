@@ -11,6 +11,13 @@
 # (http://localhost:8080) is identical from both the browser and idp-register —
 # see README.md. All secrets here are throwaway test values; never reuse them.
 services:
+  mailcrab:
+    image: marlonb/mailcrab:latest
+    container_name: mailcrab-dev
+    ports:
+      - "1080:1080"
+    restart: unless-stopped
+
   rauthy:
     image: ghcr.io/sebadob/rauthy:0.35.2
     container_name: rauthy-dev
@@ -48,6 +55,11 @@ services:
       BOOTSTRAP_API_KEY: eyJuYW1lIjoiaWRwLXJlZ2lzdGVyIiwiZXhwIjoyMDAwMDAwMDAwLCJhY2Nlc3MiOlt7Imdyb3VwIjoiVXNlcnMiLCJhY2Nlc3NfcmlnaHRzIjpbInJlYWQiLCJjcmVhdGUiLCJ1cGRhdGUiXX0seyJncm91cCI6Ikdyb3VwcyIsImFjY2Vzc19yaWdodHMiOlsicmVhZCJdfV19
       BOOTSTRAP_API_KEY_SECRET: 75d205eb93bafde5982690d31d35c203d57a7b5c1273d3d9b78879d47b0ddf547da025085dbcd7e4
 
+      # --- local SMTP capture for account/reset mail tests ---
+      SMTP_URL: mailcrab
+      SMTP_PORT: 1025
+      SMTP_DANGER_INSECURE: "true"
+
       # --- bootstrap OIDC client(s) from ./bootstrap/clients.json ---
       BOOTSTRAP_DIR: /app/bootstrap
     volumes:
@@ -55,6 +67,8 @@ services:
       - ./config.toml:/app/config.toml:ro
       - ./bootstrap:/app/bootstrap:ro
       - rauthy-data:/app/data
+    depends_on:
+      - mailcrab
     restart: unless-stopped
 
 volumes:

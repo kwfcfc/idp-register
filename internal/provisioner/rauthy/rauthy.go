@@ -3,9 +3,10 @@
 // Package rauthy implements provisioner.Provisioner against a Rauthy instance.
 // Ported from the draft's src/lib/server/rauthy.ts. Auth header form is
 // "API-Key <name>$<secret>". Confirmed facts (see docs/ARCHITECTURE.md):
-//   - POST /users creates a user silently (no email).
-//   - The activation/set-password email is sent by a separate request_reset
-//     call; Rauthy then delivers its own mail (so InitCredentials returns nil).
+//   - POST /users creates the user and, when SMTP is configured, sends the
+//     initial "new password" activation email.
+//   - POST /users/request_reset is the public password-reset path and requires
+//     a PoW payload in Rauthy 0.35.2, even with an API key.
 package rauthy
 
 import (
@@ -142,7 +143,8 @@ func (c *Client) FindUserByEmail(ctx context.Context, email string) (*provisione
 	return &provisioner.User{ID: u.ID, Email: u.Email, Groups: u.Groups}, true, nil
 }
 
-// CreateUser creates a user silently (POST /users does not send email).
+// CreateUser creates a user. Rauthy 0.35.2 sends the initial set-password
+// email as part of this request when SMTP is configured.
 func (c *Client) CreateUser(ctx context.Context, in provisioner.NewUser) (string, error) {
 	lang := orDefault(in.Language, c.language)
 	tz := orDefault(in.Timezone, c.timezone)
@@ -180,18 +182,12 @@ func (c *Client) setPreferredUsername(ctx context.Context, userID, username stri
 	return err
 }
 
-// InitCredentials asks Rauthy to send the user its set-password / activation
-// email. Rauthy delivers the mail itself, so the returned reset link is nil.
+// InitCredentials is intentionally a no-op for Rauthy 0.35.2. POST /users
+// already sends the initial set-password email for newly created users when SMTP
+// is configured.
 //
-// NOTE: the exact admin endpoint and whether a proof-of-work is required varies
-// by Rauthy version. The public POST /users/request_reset requires PoW and
-// always returns 200 (anti-enumeration). Confirm against the deployed instance
-// before relying on this in production; this is the one piece the draft never
-// implemented.
+// The public POST /users/request_reset path requires a PoW payload and is not an
+// admin API shortcut, even when called with an API key.
 func (c *Client) InitCredentials(ctx context.Context, userID, email string) (*string, error) {
-	body := map[string]any{"email": email}
-	if _, err := c.do(ctx, http.MethodPost, "/users/request_reset", body, nil); err != nil {
-		return nil, err
-	}
 	return nil, nil
 }
