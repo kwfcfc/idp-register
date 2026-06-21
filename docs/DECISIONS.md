@@ -65,6 +65,9 @@ The maintainer already uses Synapse registration tokens and wants the same menta
 mirror Synapse: `uses_allowed` / `pending` / `completed` / `expiry_time` (+ `active`).
 Reserve with `pending++`, confirm with `completed++`. Admin API shape mirrors Synapse
 (`.../registration_tokens`, `/new`, `PUT`, `DELETE`, `?valid=`).
+In this application, every invite code must also bind to one `permission_profiles.id`;
+valid invite use is always automatic approval into that profile/service. There is no
+profile-less or semi-automatic invite path.
 
 **Consequences.** Familiar model; scripts/intuition transfer from Synapse. Codes must
 **never be logged**; mitigate guessing with rate-limit + expiry + use caps. Drops the

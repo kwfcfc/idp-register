@@ -22,8 +22,12 @@
   let createdCode = $state('');
   let copied = $state(false);
 
+  $effect(() => {
+    if (!profileId && data.profiles[0]) profileId = data.profiles[0].id;
+  });
+
   const profileLabel = (id: string | null) =>
-    id ? (data.profiles.find((p) => p.id === id)?.label ?? id) : '任意';
+    id ? (data.profiles.find((p) => p.id === id)?.label ?? id) : '未绑定（旧数据）';
   const usesLabel = (t: RegistrationToken) =>
     `${t.pending + t.completed} / ${t.usesAllowed ?? '∞'}`;
 
@@ -41,6 +45,10 @@
     event.preventDefault();
     createError = '';
     createdCode = '';
+    if (!profileId) {
+      createError = '请选择邀请码对应的权限模板。';
+      return;
+    }
     busy = true;
     try {
       const created = await apiSend<RegistrationToken>('POST', '/api/admin/tokens', {
@@ -48,7 +56,7 @@
         usesAllowed: maxUses === '' ? null : Number(maxUses),
         expiryTime: expiresInDays === '' ? null : now + Number(expiresInDays) * 86_400_000,
         emailConstraint: email.trim() || null,
-        profileId: profileId || null,
+        profileId,
         note: note.trim()
       });
       createdCode = created.token;
@@ -79,7 +87,7 @@
 <div class="page-header">
   <div>
     <h1>邀请码</h1>
-    <p>明文、限次、可设有效期的邀请码（与 Synapse 注册令牌语义一致）。有效邀请码可自动批准申请。</p>
+    <p>明文、限次、可设有效期的邀请码。每个邀请码绑定一个权限模板，使用后只走自动审批。</p>
   </div>
 </div>
 
@@ -105,13 +113,13 @@
             <div class="help">填写后，申请邮箱必须精确匹配才会自动批准。</div>
           </div>
           <div class="field full">
-            <label for="profileId">权限模板（可选）</label>
-            <select id="profileId" bind:value={profileId}>
-              <option value="">不指定（审批时再选）</option>
+            <label for="profileId">权限模板</label>
+            <select id="profileId" bind:value={profileId} required>
               {#each data.profiles as profile (profile.id)}
                 <option value={profile.id}>{profile.label} — {profile.description}</option>
               {/each}
             </select>
+            <div class="help">邀请码有效时会直接按该模板创建目标 IdP 用户。</div>
           </div>
           <div class="field">
             <label for="expiresInDays">有效天数（留空=永不过期）</label>
@@ -142,9 +150,9 @@
     <div class="card-body">
       <div class="info-list">
         <div class="info-key">存储方式</div><div class="info-value">明文存储，按代码字符串寻址（ADR-0004）</div>
-        <div class="info-key">权限来源</div><div class="info-value">服务端权限模板，公开表单不能自行提交 groups</div>
+        <div class="info-key">权限来源</div><div class="info-value">邀请码绑定服务端权限模板，公开表单不能自行提交 groups</div>
         <div class="info-key">使用策略</div><div class="info-value">可绑定邮箱、设置有效期与最大使用次数</div>
-        <div class="info-key">计数</div><div class="info-value">使用 = 预留(pending) + 已完成(completed)</div>
+        <div class="info-key">计数</div><div class="info-value">自动审批期间 pending+1，创建成功后 completed+1</div>
         <div class="info-key">审计</div><div class="info-value">创建、启停与删除均写入审计日志</div>
       </div>
     </div>

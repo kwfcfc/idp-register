@@ -30,6 +30,10 @@ var tokenPattern = regexp.MustCompile(`^[A-Za-z0-9._~-]{1,64}$`)
 // ErrInvalidToken is returned for a malformed admin-supplied token string.
 var ErrInvalidToken = errors.New("token must be 1-64 chars from [A-Za-z0-9._~-]")
 
+// ErrProfileRequired is returned when an invite code is not bound to the
+// permission profile it should auto-approve into.
+var ErrProfileRequired = errors.New("a permission profile is required for an invite code")
+
 // Service owns invite-code lifecycle.
 type Service struct {
 	store *store.Store
@@ -52,6 +56,13 @@ type MintParams struct {
 // Mint creates a token. The plaintext value lives only on the returned struct
 // and in the database; it is deliberately excluded from the audit details.
 func (s *Service) Mint(ctx context.Context, p MintParams, actor store.AdminUser) (*store.RegistrationToken, error) {
+	if p.ProfileID == nil || *p.ProfileID == "" {
+		return nil, ErrProfileRequired
+	}
+	if _, err := s.store.GetProfile(ctx, *p.ProfileID); err != nil {
+		return nil, err
+	}
+
 	tok := p.Token
 	if tok == "" {
 		var err error

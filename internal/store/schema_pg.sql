@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS registration_tokens (
   expiry_time      BIGINT,
   active           INTEGER NOT NULL DEFAULT 1,
   email_constraint TEXT,
-  profile_id       TEXT REFERENCES permission_profiles(id),
+  profile_id       TEXT NOT NULL REFERENCES permission_profiles(id),
   note             TEXT NOT NULL DEFAULT '',
   created_by_sub   TEXT NOT NULL,
   created_by_email TEXT NOT NULL,

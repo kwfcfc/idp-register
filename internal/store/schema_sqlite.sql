@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS registration_tokens (
   expiry_time      INTEGER,                     -- epoch ms; NULL = never
   active           INTEGER NOT NULL DEFAULT 1,  -- manual disable switch
   email_constraint TEXT,                        -- lowercased; binds code to one email
-  profile_id       TEXT REFERENCES permission_profiles(id),
+  profile_id       TEXT NOT NULL REFERENCES permission_profiles(id),
   note             TEXT NOT NULL DEFAULT '',
   created_by_sub   TEXT NOT NULL,
   created_by_email TEXT NOT NULL,

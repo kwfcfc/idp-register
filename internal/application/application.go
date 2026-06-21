@@ -69,9 +69,11 @@ type SubmitResult struct {
 	AutoApproved  bool
 }
 
-// Submit records a registration application. If a valid invite code with spare
-// capacity is supplied, the code's use is reserved and provisioning is attempted
-// immediately (auto-approval); otherwise the application waits for admin review.
+// Submit records a registration application. If a valid invite code with a
+// bound permission profile and spare capacity is supplied, that profile becomes
+// the approved service, the code's use is reserved, and provisioning is
+// attempted immediately (auto-approval). Otherwise the application waits for
+// admin review.
 //
 // A duplicate live application (same email/username) is reported via
 // store's unique indexes; callers should still return the uniform response.
@@ -102,9 +104,8 @@ func (s *Service) Submit(ctx context.Context, in SubmitInput) (*SubmitResult, er
 			reservedToken = t
 			app.TokenID = &t.ID
 			app.Status = store.StatusProvisioning
-			if t.ProfileID != nil {
-				app.ApprovedProfileID = t.ProfileID
-			}
+			app.ApprovedProfileID = t.ProfileID
+			app.RequestedServices = []string{*t.ProfileID}
 		}
 	}
 
@@ -131,11 +132,18 @@ func (s *Service) Submit(ctx context.Context, in SubmitInput) (*SubmitResult, er
 	return &SubmitResult{ApplicationID: app.ID, AutoApproved: true}, nil
 }
 
-// tryReserve validates an invite code and atomically reserves one use. Returns
-// the token on success, nil on any failure (caller falls back to review).
+// tryReserve validates an invite code with an auto-approval profile and
+// atomically reserves one use. Returns the token on success, nil on any failure
+// (caller falls back to review).
 func (s *Service) tryReserve(ctx context.Context, code, emailNorm string) *store.RegistrationToken {
 	t, err := s.store.GetTokenByValue(ctx, code)
 	if err != nil {
+		return nil
+	}
+	if t.ProfileID == nil || *t.ProfileID == "" {
+		return nil
+	}
+	if _, err := s.store.GetProfile(ctx, *t.ProfileID); err != nil {
 		return nil
 	}
 	// Enforce an email-bound code before consuming a use.

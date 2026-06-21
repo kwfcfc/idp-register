@@ -129,7 +129,7 @@ func TestReserveTokenAtomic(t *testing.T) {
 	uses := int64(2)
 	tok := &RegistrationToken{
 		ID: uuid.NewString(), Token: "test-code-123", UsesAllowed: &uses,
-		Active: true, CreatedBySub: "admin", CreatedByEmail: "a@example.com",
+		Active: true, ProfileID: strptr("developer"), CreatedBySub: "admin", CreatedByEmail: "a@example.com",
 	}
 	if err := s.CreateToken(ctx, tok); err != nil {
 		t.Fatalf("create token: %v", err)
@@ -169,7 +169,7 @@ func TestExpiredTokenRejected(t *testing.T) {
 	exp := int64(1000)
 	tok := &RegistrationToken{
 		ID: uuid.NewString(), Token: "expired", ExpiryTime: &exp,
-		Active: true, CreatedBySub: "admin", CreatedByEmail: "a@example.com",
+		Active: true, ProfileID: strptr("developer"), CreatedBySub: "admin", CreatedByEmail: "a@example.com",
 	}
 	if err := s.CreateToken(ctx, tok); err != nil {
 		t.Fatalf("create: %v", err)

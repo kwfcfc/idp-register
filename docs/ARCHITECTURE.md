@@ -63,28 +63,26 @@ for IdPs without a groups claim).
 - **Provisioner** (`internal/provisioner`) — `rauthy` impl now; `kanidm` later.
 - **Admin OIDC RP + sessions** (`internal/oidcauth`).
 - **Audit log** (`internal/audit`).
-- **Reconcile job** — periodically confirms IdP-side activation to advance token counters.
 
 ## Registration flow (state machine)
 
 ```
 submit (email, optional username, ToS, Turnstile, optional invite code)
   │  uniform response: "application received"   ← never reveal if email/code exists
-  ├─ code present & valid & has capacity ──▶ AUTO-APPROVE
-  │        reserve: pending++  ─▶ provision ─▶ status=provisioning→approved
-  ├─ code present but invalid ─▶ soft error (re-enter or leave blank)
+  ├─ code present & valid & has capacity & bound profile ──▶ AUTO-APPROVE
+  │        requested service = token.profile_id
+  │        reserve: pending++  ─▶ provision ─▶ pending--, completed++ ─▶ approved
+  ├─ code present but invalid ─▶ ordinary pending application (uniform response)
   └─ no code ─▶ status=pending ─▶ admin review
                  ├─ approve ─▶ provision
                  └─ reject / needs_changes
 
 provision = claim (conditional UPDATE pending→provisioning)
           → Provisioner.CreateUser → set username/groups
-          → Provisioner.InitCredentials (IdP sends activation email, or returns a link we send)
+          → Provisioner.InitCredentials if needed by the provider
           → status=approved ; failure → provisioning_failed (safe retry)
 
 user clicks activation link, sets password/passkey (= email verified + account active)
-  → reconcile/landing confirms → if via invite code: pending--, completed++
-  → activation link expires unused → pending-- (release the slot)
 ```
 
 Happy path = **one** user-facing email (the IdP activation mail).
@@ -97,10 +95,11 @@ Plaintext code, addressed by the code string. Semantics mirror Synapse registrat
 |---|---|
 | `token` | plaintext, ≤64 chars, charset `[A-Za-z0-9._~-]`; random if not supplied |
 | `uses_allowed` | max successful registrations; `NULL` = unlimited |
-| `pending` | reserved-but-not-completed; `+1` on use, `-1` on completion/expiry |
+| `pending` | reserved-but-not-completed; `+1` on use, `-1` on provisioning success or explicit release |
 | `completed` | successful registrations |
 | `expiry_time` | epoch **ms**; `NULL` = never |
 | `active` | manual disable switch |
+| `profile_id` | required permission profile; valid invite codes only auto-approve into this profile |
 
 **Validity**: `active AND (expiry_time IS NULL OR expiry_time > now) AND (uses_allowed IS NULL OR pending+completed < uses_allowed)`.
 

@@ -115,7 +115,7 @@ func (s *Store) ReserveToken(ctx context.Context, token string, now int64) (bool
 }
 
 // CompleteTokenUse converts a reservation into a completed registration
-// (pending--, completed++). Called when activation is confirmed.
+// (pending--, completed++). Called when automatic provisioning succeeds.
 func (s *Store) CompleteTokenUse(ctx context.Context, tokenID string) error {
 	_, err := s.exec(ctx,
 		`UPDATE registration_tokens
@@ -126,7 +126,6 @@ func (s *Store) CompleteTokenUse(ctx context.Context, tokenID string) error {
 }
 
 // ReleaseTokenReservation returns a reserved slot to the pool (pending--).
-// Called when provisioning fails permanently or an activation link expires.
 func (s *Store) ReleaseTokenReservation(ctx context.Context, tokenID string) error {
 	_, err := s.exec(ctx,
 		`UPDATE registration_tokens

@@ -59,10 +59,10 @@ Remaining (the actual flow, not yet captured as a repeatable test):
 - ✅ `POST /users/request_reset` tested separately: it requires `pow` and sends no mail
   when only `email` is provided, even with the provisioning API key. The Rauthy
   provisioner therefore treats `InitCredentials` as a no-op for newly created users.
-- 🔄 Invite-code auto-approval path (token bound to a profile) exercised through
-  Rauthy user creation + group assignment. The run also found and fixed the app-side
-  bug where `approved_profile_id` was not persisted during auto-approval application
-  creation.
+- ✅ Invite-code auto-approval path is profile-bound only: each token must name a
+  permission profile/service, and a valid token always provisions directly into that
+  profile. The run also found and fixed the app-side bug where `approved_profile_id`
+  was not persisted during auto-approval application creation.
 - ⬜ Capture as a repeatable script/integration test (httptest + a Rauthy stub, plus a
   manual checklist against `deploy/dev/`).
 
@@ -74,9 +74,11 @@ Remaining (the actual flow, not yet captured as a repeatable test):
 Deferred from ADR-0012. Needs union-of-groups provisioning and storing multiple approved
 profiles per application; `selectionMode` becomes admin-configurable (single/multi).
 
-### M5 — Reconcile job ⬜
-Periodic job that confirms IdP-side activation and advances invite-code counters
-(pending → completed / released on expiry). See ARCHITECTURE.md.
+### M5 — Provisioning recovery / cleanup ⬜
+Invite counters now advance on provisioning success (`pending--`, `completed++`) instead
+of waiting for a separate activation confirmation. Still needed: an admin-visible recovery
+or cleanup story for stale `provisioning_failed` applications that hold a pending invite
+reservation.
 
 ### M6 — Schema migrations ⬜
 There is no migration framework yet (schema is `CREATE TABLE IF NOT EXISTS`; new columns
