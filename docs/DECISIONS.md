@@ -156,3 +156,70 @@ pipelines or deployment automation yet** — focus on the application first. Syn
 
 **Consequences.** Jsonnet gives reusable functions/imports over plain YAML. Cost: a less
 common engine; contributors must learn Crow/Woodpecker conventions. No CI gate until wired.
+
+---
+
+## ADR-0011 — Support front/back-separated deployment; three build targets
+**Status:** accepted; only Mode 1 implemented (Modes 2 & 3 deferred)
+
+**Context.** Today the frontend is embedded in the Go binary and served by it (one
+origin, ADR-0002). We also want the option to deploy the SPA **separately** (nginx, a CDN,
+Cloudflare Pages) with the Go service acting as an API-only backend, so the UI can be
+hosted/cached independently. This must not break the same-origin cookie + `Origin`-CSRF
+model unless explicitly opted into.
+
+**Decision.** Keep one SPA source and one Go codebase, packaged three ways
+(see [`DEPLOYMENT.md`](DEPLOYMENT.md) for the how):
+1. **All-in-one** — Go embeds + serves the SPA (current default; implemented).
+2. **API-only** — Go serves no SPA, gated by a `SERVE_FRONTEND` flag (deferred).
+3. **Standalone static frontend** — built bundle on nginx/CDN (deferred).
+
+For separation, **prefer same-origin via an edge reverse-proxy** (the static host proxies
+`/api` + `/auth` to the API): the SPA keeps using **relative** API paths, so the existing
+`SameSite=Lax` cookie + CSRF model is unchanged and there is **no CORS**. True cross-origin
+(separate API domain) is the fallback and requires CORS + `SameSite=None;Secure` + an
+allowed-frontend-origin config + a configurable post-login redirect + a `VITE_API_BASE` in
+the SPA. These three packagings become the **three Crow CI build targets** (ADR-0010).
+
+**Consequences.** Flexible hosting (e.g. SPA on Cloudflare, API on a small box) without
+forking the code. Cost: an unembedded build needs a parameterized adapter-static output
+dir and the `SERVE_FRONTEND` flag; the cross-origin path additionally needs real CORS and
+cookie/redirect changes, so keep the relative-path + edge-proxy route as the default.
+
+---
+
+## ADR-0012 — Profiles draw from the live IdP group catalog; admin CRUD; a public service selector
+**Status:** accepted; backend implemented (frontend deferred)
+
+**Context.** ADR-0009 keeps group assignment server-side in `permission_profiles`, but
+those profiles were seeded with **hard-coded** group strings (`svc:matrix:user`, …) and had
+only a read endpoint. Admins had no way to create/edit a profile, which blocked the whole
+approval chain (approve requires an existing profile). We also want the public form to offer
+a curated, admin-controlled set of "services to register for" rather than a free-text field.
+
+**Decision.**
+1. **Groups come from the target IdP, not the app.** Add `Provisioner.ListGroups` (Rauthy:
+   `GET /groups`, needs `Groups:read` on the API key). Profiles are composed only from group
+   names the IdP actually defines; submitted groups are validated against this live catalog.
+2. **A denylist hides infra/admin groups** from the profile editor and rejects them on write
+   (`PROFILE_GROUP_DENYLIST`, default `admin,rauthy_admin`, always merged with the app's own
+   `OIDC_ADMIN_GROUP`). Service-admin groups like `svc:gotosocial:admin` stay assignable —
+   only true infrastructure-admin groups are withheld.
+3. **Profiles are admin-CRUD.** `POST/PUT/DELETE /api/admin/profiles[/{id}]`, plus
+   `GET /api/admin/groups` for the editor. Delete is refused (409) while a token or
+   application still references the profile (FK), preserving audit history.
+4. **A public service selector.** Profiles carry `public_selectable` + `public_label` +
+   `sort_order`. `GET /api/form` returns the anonymous-safe option list (**no group names**)
+   and a `selectionMode`. The public form's selection is stored as advisory
+   `requested_services` (validated to public ids); the **real** profile/groups are still
+   resolved by an admin at approval — ADR-0009 is unchanged.
+5. **Single-select first.** `selectionMode` is fixed to `"single"` for now. Multi-select
+   needs union-of-groups provisioning and storing multiple approved profiles per application;
+   that is a separate roadmap milestone, not part of this slice.
+
+**Consequences.** Admins manage profiles from the panel with a real group picker; the public
+form is curated without code changes; privilege escalation via crafted group names is
+impossible (server validates against the catalog minus denylist). Cost: profile writes now
+depend on a live IdP call; the new profile columns are added via the `CREATE TABLE` schema
+(no migration framework yet — existing dev DBs must be recreated; a real migration story is
+tracked in the roadmap before any persistent deployment).
