@@ -6,5 +6,12 @@ build
 !.env.example
 .DS_Store
 
+# Go
+/idp-register
+/server
+*.db
+*.db-shm
+*.db-wal
+
 # direnv stuff
 /.direnv/
