@@ -80,10 +80,16 @@ of waiting for a separate activation confirmation. Admins can retry a failed pro
 by approving again, or reject the application to release any held invite reservation.
 Still needed: make this recovery/cleanup path explicit in tests and UI copy.
 
-### M6 — Schema migrations ⬜
-There is no migration framework yet (schema is `CREATE TABLE IF NOT EXISTS`; new columns
-require recreating dev DBs). Introduce real, ordered migrations before any persistent
-deployment. Prerequisite for trusting M7's PostgreSQL coverage across versions.
+### M6 — Schema discipline & database policy ✅
+Document the fresh-deployment schema and database support policy without promising automatic
+old-database upgrades or SQLite↔PostgreSQL conversion.
+- ✅ `docs/DATABASE.md`: supported baselines, fresh deployment, upgrade policy, manual
+  backend-switching notes.
+- ✅ `docs/SCHEMA.md`: logical schema and SQLite/PostgreSQL type mapping.
+- ✅ Initial deployment SQL split by dialect:
+  `migrations/sqlite/001_init.sql`, `migrations/postgres/001_init.sql`.
+- 🧊 Automatic old-database upgrades are deferred until a future release introduces a
+  breaking schema change that actually needs one.
 
 ### M7 — PostgreSQL test coverage ⬜
 Run the store suite against PostgreSQL (testcontainers) alongside SQLite, to lock the

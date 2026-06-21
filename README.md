@@ -35,6 +35,9 @@ PostgreSQL · generic OIDC admin login · plaintext Synapse-style invite codes �
 - [`AGENTS.md`](AGENTS.md) — context & hard invariants for AI agents and developers (read first).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design, flows, data model.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — architecture decision records (the *why*).
+- [`docs/DATABASE.md`](docs/DATABASE.md) — supported DB baselines, fresh-deploy policy,
+  and manual backend-switching notes.
+- [`docs/SCHEMA.md`](docs/SCHEMA.md) — logical schema and SQLite/PostgreSQL type mapping.
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment modes (all-in-one / API-only /
   standalone static frontend) and the three future CI build targets.
 

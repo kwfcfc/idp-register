@@ -224,9 +224,10 @@ a curated, admin-controlled set of "services to register for" rather than a free
 **Consequences.** Admins manage profiles from the panel with a real group picker; the public
 form is curated without code changes; privilege escalation via crafted group names is
 impossible (server validates against the catalog minus denylist). Cost: profile writes now
-depend on a live IdP call; the new profile columns are added via the `CREATE TABLE` schema
-(no migration framework yet — existing dev DBs must be recreated; a real migration story is
-tracked in the roadmap before any persistent deployment).
+depend on a live IdP call. The current database policy is documented in
+`docs/DATABASE.md`: fresh deployments may choose SQLite or PostgreSQL, while automatic
+old-database upgrades are deferred until a future breaking schema change requires an
+explicit upgrade path.
 
 ---
 

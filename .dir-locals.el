@@ -28,22 +28,24 @@
       . ("direnv" "exec" "." "claude-agent-acp"))
      (agent-shell-openai-codex-acp-command
       . ("direnv" "exec" "." "codex-acp"))
-     ;; OpenAI API key: decrypt on demand from sops (age recipient = ssh key,
-     ;; decrypted with ~/.ssh/id_ed25519). The key only ever lives inside the
-     ;; Emacs process and is never exported to the environment, so other
-     ;; direnv consumers in this project never see it.
-     (eval . (when (fboundp 'agent-shell-openai-make-authentication)
-               (setq-local
-                agent-shell-openai-authentication
-                (agent-shell-openai-make-authentication
-                 :api-key
-                 (lambda ()
-                   (let ((f (expand-file-name
-                             "secrets.enc.yaml"
-                             (locate-dominating-file
-                              default-directory ".dir-locals.el"))))
-                     (string-trim
-                      (shell-command-to-string
-                       (format "sops -d --extract '[\"OPENAI_API_KEY\"]' %s"
-                               (shell-quote-argument f))))))))))))
+     ;; OpenAI auth mode toggle (agent-shell defaults to login when unset):
+     ;;   - login: comment out the :api-key eval block below.
+     ;;   - api-key: uncomment it; the key is decrypted on demand from sops
+     ;;     (age recipient = ssh key, decrypted with ~/.ssh/id_ed25519), stays
+     ;;     inside the Emacs process, and is never exported to the environment.
+     ;; (eval . (when (fboundp 'agent-shell-openai-make-authentication)
+     ;;           (setq-local
+     ;;            agent-shell-openai-authentication
+     ;;            (agent-shell-openai-make-authentication
+     ;;             :api-key
+     ;;             (lambda ()
+     ;;               (let ((f (expand-file-name
+     ;;                         "secrets.enc.yaml"
+     ;;                         (locate-dominating-file
+     ;;                          default-directory ".dir-locals.el"))))
+     ;;                 (string-trim
+     ;;                  (shell-command-to-string
+     ;;                   (format "sops -d --extract '[\"OPENAI_API_KEY\"]' %s"
+     ;;                           (shell-quote-argument f))))))))))
+     ))
  )
