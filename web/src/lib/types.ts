@@ -22,8 +22,34 @@ export type PermissionProfile = {
   label: string;
   description: string;
   groups: string[];
+  // Public service-selector fields (ADR-0012). `publicSelectable` offers the
+  // profile in the public form; `publicLabel` is the user-facing text (falls
+  // back to `label`); `sortOrder` is the ascending display order.
+  publicSelectable: boolean;
+  publicLabel: string;
+  sortOrder: number;
   createdAt: number;
   updatedAt: number;
+};
+
+// An assignable group from the target IdP catalog (GET /api/admin/groups).
+// Profiles are composed only from these (ADR-0012); the app never invents names.
+export type Group = {
+  id: string;
+  name: string;
+};
+
+// The anonymous-safe public form configuration (GET /api/form). Service options
+// carry no IdP group names — only an id the form echoes back as `services`.
+export type PublicService = {
+  id: string;
+  label: string;
+  description: string;
+};
+
+export type FormConfig = {
+  services: PublicService[];
+  selectionMode: 'single'; // multi-select deferred (ADR-0012)
 };
 
 export type Application = {

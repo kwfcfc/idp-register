@@ -4,6 +4,8 @@
   import { page } from '$app/state';
   import { apiSend, ApiError } from '$lib/api';
 
+  let { data } = $props();
+
   // Optional Cloudflare Turnstile. The site key is a build-time public value;
   // when unset, the backend also has its secret unset and skips verification.
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
@@ -12,6 +14,10 @@
   let username = $state('');
   let reviewText = $state('');
   let inviteCode = $state(page.url.searchParams.get('token') ?? '');
+  // Single-select for now (ADR-0012); '' means no service chosen. The picker
+  // maps an admin-curated profile to a user-facing "service" — the public form
+  // only ever sees the opaque id, never the underlying IdP groups (invariant #4).
+  let service = $state('');
   let turnstileToken = $state('');
 
   let submitting = $state(false);
@@ -41,6 +47,7 @@
         username: username.trim(),
         reviewText: reviewText.trim(),
         inviteCode: inviteCode.trim(),
+        services: service ? [service] : [],
         turnstileToken
       });
       done = true;
@@ -79,6 +86,24 @@
           <label for="username">用户名</label>
           <input id="username" bind:value={username} placeholder="希望使用的用户名" />
         </div>
+        {#if data.services.length}
+          <div class="field">
+            <label for="service">申请的服务</label>
+            <select id="service" bind:value={service}>
+              <option value="">不指定（由管理员决定）</option>
+              {#each data.services as svc (svc.id)}
+                <option value={svc.id}>{svc.label}</option>
+              {/each}
+            </select>
+            <div class="help">
+              {#if service}
+                {data.services.find((s) => s.id === service)?.description || '选择你希望注册使用的服务。'}
+              {:else}
+                选择你希望注册使用的服务；具体权限在审批时由管理员确定。
+              {/if}
+            </div>
+          </div>
+        {/if}
         <div class="field">
           <label for="reviewText">申请说明</label>
           <textarea id="reviewText" bind:value={reviewText} placeholder="简要说明你是谁、为什么申请。"
