@@ -2,7 +2,7 @@
     "name": "tool-cli",
     "version": "1.0.0",
     "private": true,
-    "description": "Pinned editor LSP servers (kept out of the production build dependency graph) and ACP tools for agents",
+    "description": "List editor LSP servers (kept out of the production build dependency graph) and ACP tools for agents",
     "devDependencies": {
         "typescript-language-server": "^5.3.0",
         "svelte-language-server": "^0.18.0",
