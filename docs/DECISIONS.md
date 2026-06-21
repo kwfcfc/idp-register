@@ -227,3 +227,21 @@ impossible (server validates against the catalog minus denylist). Cost: profile 
 depend on a live IdP call; the new profile columns are added via the `CREATE TABLE` schema
 (no migration framework yet — existing dev DBs must be recreated; a real migration story is
 tracked in the roadmap before any persistent deployment).
+
+---
+
+## ADR-0013 — Admin decisions are approve or reject only
+**Status:** accepted
+
+**Context.** The service does not send applicant-facing email. The happy-path email is sent
+by the provisioning target IdP after approval, and invalid/missing invite codes already fall
+back to ordinary manual review through the uniform public response.
+
+**Decision.** Keep the admin review state machine to two human decisions: **approve** or
+**reject**. There is no `needs_changes` state and no "request more information" workflow.
+If provisioning fails after an invite reservation, an admin either retries approval after
+fixing the cause, or rejects the application to release the held invite use.
+
+**Consequences.** The review UI stays simpler and matches the no-service-email constraint.
+Applicants who made a mistake can submit again; the service does not need to manage an
+outbound correspondence loop.

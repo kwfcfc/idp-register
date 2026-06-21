@@ -1,3 +1,5 @@
+-- SPDX-License-Identifier: GPL-3.0-or-later
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS permission_profiles (
@@ -39,7 +41,7 @@ CREATE TABLE IF NOT EXISTS applications (
   review_text TEXT NOT NULL,
   requested_services TEXT[] NOT NULL DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'pending' CHECK (
-    status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'rejected', 'needs_changes')
+    status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'rejected')
   ),
   email_verified_at TIMESTAMPTZ,
   captcha_provider TEXT,
@@ -58,11 +60,11 @@ CREATE TABLE IF NOT EXISTS applications (
 
 CREATE UNIQUE INDEX IF NOT EXISTS active_application_email_unique
   ON applications(email_normalized)
-  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'needs_changes');
+  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved');
 
 CREATE UNIQUE INDEX IF NOT EXISTS active_application_username_unique
   ON applications(username_normalized)
-  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'needs_changes');
+  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved');
 
 CREATE INDEX IF NOT EXISTS applications_status_created_idx ON applications(status, created_at DESC);
 

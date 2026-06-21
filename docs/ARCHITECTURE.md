@@ -75,7 +75,7 @@ submit (email, optional username, ToS, Turnstile, optional invite code)
   ├─ code present but invalid ─▶ ordinary pending application (uniform response)
   └─ no code ─▶ status=pending ─▶ admin review
                  ├─ approve ─▶ provision
-                 └─ reject / needs_changes
+                 └─ reject
 
 provision = claim (conditional UPDATE pending→provisioning)
           → Provisioner.CreateUser → set username/groups
@@ -122,7 +122,7 @@ Tables: `registration_tokens`, `applications`, `permission_profiles`, `admin_ses
 `audit_log`. Portability rules (see AGENTS.md invariant #1): app-generated UUID `TEXT` PKs,
 epoch-ms `INTEGER` timestamps, JSON-in-`TEXT` for lists (`groups`, `requested_services`),
 `INET`→`TEXT`. The application lifecycle states: `pending`, `provisioning`,
-`provisioning_failed`, `approved`, `rejected`, `needs_changes`.
+`provisioning_failed`, `approved`, `rejected`.
 
 ## Provisioner interface
 

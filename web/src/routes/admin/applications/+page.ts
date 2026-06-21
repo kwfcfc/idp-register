@@ -8,8 +8,7 @@ const allowed = new Set<ApplicationStatus>([
   'provisioning',
   'provisioning_failed',
   'approved',
-  'rejected',
-  'needs_changes'
+  'rejected'
 ]);
 
 export const load: PageLoad = async ({ fetch, url }) => {

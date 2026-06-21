@@ -50,6 +50,71 @@ Then:
   form with it; idp-register calls the Rauthy API to create the user. Verify in
   Rauthy's own admin UI at http://localhost:8080/auth/v1/admin.
 
+## M3 smoke-test checklist
+
+Use this checklist after code changes that touch registration, profiles, invite codes,
+provisioning, OIDC login, or Rauthy/Mailcrab harness config.
+
+### Harness
+
+- Start Rauthy + Mailcrab and wait for Rauthy to listen.
+- Build the SPA and start idp-register on `http://localhost:8081`.
+- Open `http://localhost:8081/login`, complete Rauthy admin login, and confirm the admin
+  dashboard loads.
+- Open Mailcrab at `http://localhost:1080/` and clear old messages before provisioning
+  assertions.
+
+### Profiles
+
+- In the admin UI, open **Profiles**.
+- Confirm the group picker loads real Rauthy groups from `GET /api/admin/groups`.
+- Create or update a profile that:
+  - uses only non-denylisted groups;
+  - is marked public-selectable;
+  - has a public label and sort order.
+- Open the public form and confirm the service selector shows the public profile label, not
+  raw IdP group names.
+
+### Manual-review path
+
+- Submit the public form without an invite code and with the public service selected.
+- Confirm the user gets the same uniform "received" response as every other submission.
+- In the admin UI, confirm the application is `pending` and `requestedServices` contains
+  the selected profile id.
+- Approve it with a permission profile.
+- Confirm the application becomes `approved`, Rauthy has created the user with the expected
+  groups, and Mailcrab has exactly one new `Rauthy IAM - New Password` message.
+
+### Invite auto-approval path
+
+- Create an invite code in the admin UI. A `profileId` is required; creation without one
+  must return `400`.
+- Submit the public form with that valid invite code. Any submitted `services` value is
+  advisory and must be overridden by the token-bound profile.
+- Confirm the public response is still the uniform `202`.
+- Confirm the application becomes `approved`, `approvedProfileId` equals the token-bound
+  profile, and `requestedServices` is exactly `[token.profile_id]`.
+- Confirm the token counters end at `pending=0, completed=1` after provisioning succeeds.
+- Confirm Mailcrab has exactly one new `Rauthy IAM - New Password` message.
+
+### Invalid or missing invite behavior
+
+- Submit with no invite code: the application must remain `pending` for admin review.
+- Submit with a malformed, expired, disabled, over-capacity, wrong-email, or unknown invite
+  code: the application must also remain `pending`.
+- Confirm these cases return the same public response as a successful invite submission;
+  do not expose whether the code or email exists.
+- Confirm no invite counter changes for invalid or non-reserved codes.
+
+### Provisioning-failure cleanup
+
+- Force or simulate a provisioning failure after a valid invite has reserved a slot.
+- Confirm the application becomes `provisioning_failed` and the invite reservation remains
+  held (`pending` stays incremented).
+- From the application detail page, retry approval after fixing the cause.
+- If the application should not proceed, reject it and confirm the held invite reservation
+  is released (`pending` decrements).
+
 ## Reset
 
 ```sh

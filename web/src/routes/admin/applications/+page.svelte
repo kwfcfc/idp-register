@@ -7,7 +7,6 @@
   const filters: [string, string][] = [
     ['pending', '待审核'],
     ['provisioning_failed', '创建失败'],
-    ['needs_changes', '需补充'],
     ['approved', '已批准'],
     ['rejected', '已拒绝'],
     ['provisioning', '创建中']

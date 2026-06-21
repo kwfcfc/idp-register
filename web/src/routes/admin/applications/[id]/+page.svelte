@@ -12,7 +12,6 @@
 
   let profileId = $state('');
   let approveNote = $state('');
-  let changesNote = $state('');
   let rejectNote = $state('');
 
   let busy = $state(false);
@@ -48,10 +47,13 @@
       });
     }, '已批准并触发目标 IdP 用户创建。');
 
-  const decide = (status: 'rejected' | 'needs_changes', note: string, ok: string) =>
+  const reject = () =>
     run(async () => {
-      await apiSend('POST', `/api/admin/applications/${a.id}/decide`, { status, note: note.trim() });
-    }, ok);
+      await apiSend('POST', `/api/admin/applications/${a.id}/decide`, {
+        status: 'rejected',
+        note: rejectNote.trim()
+      });
+    }, '已拒绝该申请。');
 </script>
 
 <svelte:head><title>{a.username} · 注册申请</title></svelte:head>
@@ -125,27 +127,14 @@
         <hr style="border:0;border-top:1px solid var(--line);margin:22px 0" />
 
         <div class="field">
-          <label for="changes-note">要求补充</label>
-          <textarea id="changes-note" bind:value={changesNote} placeholder="需要申请人补充的资料"></textarea>
-        </div>
-        <button
-          class="button secondary"
-          style="width:100%;margin-top:12px"
-          disabled={busy}
-          onclick={() => decide('needs_changes', changesNote, '已标记为需补充。')}
-        >
-          标记为需补充
-        </button>
-
-        <div class="field" style="margin-top:18px">
           <label for="reject-note">拒绝原因</label>
-          <textarea id="reject-note" bind:value={rejectNote} placeholder="内部记录或发送给申请人的理由"></textarea>
+          <textarea id="reject-note" bind:value={rejectNote} placeholder="内部记录"></textarea>
         </div>
         <button
           class="button danger"
           style="width:100%;margin-top:12px"
           disabled={busy}
-          onclick={() => decide('rejected', rejectNote, '已拒绝该申请。')}
+          onclick={reject}
         >
           拒绝申请
         </button>

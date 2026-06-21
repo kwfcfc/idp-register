@@ -9,6 +9,7 @@ build
 # Go
 /idp-register
 /server
+.gocache/
 *.db
 *.db-shm
 *.db-wal

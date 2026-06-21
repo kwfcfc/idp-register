@@ -62,12 +62,12 @@ CREATE TABLE IF NOT EXISTS applications (
 -- One live application per email/username (the "in-flight or accepted" states).
 CREATE UNIQUE INDEX IF NOT EXISTS applications_active_email_unique
   ON applications(email_normalized)
-  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'needs_changes');
+  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved');
 
 CREATE UNIQUE INDEX IF NOT EXISTS applications_active_username_unique
   ON applications(username_normalized)
   WHERE username_normalized <> ''
-    AND status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'needs_changes');
+    AND status IN ('pending', 'provisioning', 'provisioning_failed', 'approved');
 
 CREATE INDEX IF NOT EXISTS applications_status_created_idx
   ON applications(status, created_at DESC);

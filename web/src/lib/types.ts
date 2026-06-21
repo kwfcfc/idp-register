@@ -14,8 +14,7 @@ export type ApplicationStatus =
   | 'provisioning'
   | 'provisioning_failed'
   | 'approved'
-  | 'rejected'
-  | 'needs_changes';
+  | 'rejected';
 
 export type PermissionProfile = {
   id: string;

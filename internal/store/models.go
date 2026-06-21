@@ -18,7 +18,6 @@ const (
 	StatusProvisioningFailed = "provisioning_failed"
 	StatusApproved           = "approved"
 	StatusRejected           = "rejected"
-	StatusNeedsChanges       = "needs_changes"
 )
 
 // AdminUser is the authenticated admin identity carried in a session.

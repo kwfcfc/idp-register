@@ -134,8 +134,8 @@ func (s *Store) MarkProvisioningFailed(ctx context.Context, id, message string, 
 	return err
 }
 
-// Decide rejects or requests changes on an application. Returns true if a row
-// in a decidable state was updated.
+// Decide rejects an application. Returns true if a row in a decidable state was
+// updated.
 func (s *Store) Decide(ctx context.Context, id, status, note string, actor AdminUser) (bool, error) {
 	res, err := s.exec(ctx,
 		`UPDATE applications

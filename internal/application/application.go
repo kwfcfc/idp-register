@@ -193,10 +193,10 @@ func (s *Service) Approve(ctx context.Context, id, profileID, note string, actor
 	return s.provision(ctx, app, prof.Groups)
 }
 
-// Decide rejects or requests changes. A held invite reservation (if any) is
-// released so the use returns to the pool.
+// Decide rejects an application. A held invite reservation (if any) is released
+// so the use returns to the pool.
 func (s *Service) Decide(ctx context.Context, id, status, note string, actor store.AdminUser) (bool, error) {
-	if status != store.StatusRejected && status != store.StatusNeedsChanges {
+	if status != store.StatusRejected {
 		return false, errors.New("invalid decision status")
 	}
 	app, err := s.store.GetApplication(ctx, id)

@@ -76,9 +76,9 @@ profiles per application; `selectionMode` becomes admin-configurable (single/mul
 
 ### M5 — Provisioning recovery / cleanup ⬜
 Invite counters now advance on provisioning success (`pending--`, `completed++`) instead
-of waiting for a separate activation confirmation. Still needed: an admin-visible recovery
-or cleanup story for stale `provisioning_failed` applications that hold a pending invite
-reservation.
+of waiting for a separate activation confirmation. Admins can retry a failed provisioning
+by approving again, or reject the application to release any held invite reservation.
+Still needed: make this recovery/cleanup path explicit in tests and UI copy.
 
 ### M6 — Schema migrations ⬜
 There is no migration framework yet (schema is `CREATE TABLE IF NOT EXISTS`; new columns
