@@ -80,7 +80,10 @@ migrations/            (later; startup applies schema_*.sql for now)
 ## Build / test / CI (target)
 
 - **Build**: `CGO_ENABLED=0 go build`; multi-stage Dockerfile (Node builds frontend → Go
-  embeds it → distroless/scratch final, ~15 MB).
+  embeds it → distroless/scratch final, ~15 MB). This is the **all-in-one** packaging;
+  two more (API-only, standalone static frontend) are planned — see
+  [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) (ADR-0011). Those three are the future Crow CI
+  build targets.
 - **Test**: run the `store` layer against **both** SQLite (in-memory) and PostgreSQL
   (testcontainers) to catch dialect drift — this is the main reason dual-DB needs CI cover.
 - **CI/CD: Crow CI** (NOT Forgejo Actions), repo on `forgejo.goba.ip-dynamic.org`.

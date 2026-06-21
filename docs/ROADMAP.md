@@ -31,14 +31,15 @@ The functional unblock for the approval chain. See **ADR-0012**.
 - ✅ `ErrNotFound → 404`, `ErrConflict → 409` mapping (closes the old "404 returns 500" bug).
 - ✅ Store unit tests for profile CRUD + public views.
 
-### M2 — Permission-profile management (frontend) ⬜
+### M2 — Permission-profile management (frontend) ✅
 Make the admin panel and public form actually drive M1.
-- ⬜ Admin **Profiles** page: list / create / edit / delete, with a group multi-select
-  populated from `GET /api/admin/groups`, and the `publicSelectable` / `publicLabel` /
-  `sortOrder` controls.
-- ⬜ Public registration form: render the single-select service picker from `GET /api/form`,
-  submit `services`.
-- ⬜ Wire approval UI to pick from existing profiles (already required by the chain).
+- ✅ Admin **Profiles** page: list / create / edit / delete, with a group multi-select
+  populated from `GET /api/admin/groups` (degrades gracefully if the catalog call fails),
+  and the `publicSelectable` / `publicLabel` / `sortOrder` controls.
+- ✅ Public registration form: renders the single-select service picker from `GET /api/form`
+  (loaded in `+page.ts`, tolerant of failure), submits `services`.
+- ✅ Approval UI picks from existing profiles (`admin/applications/[id]` + invite-code mint),
+  and the application detail view shows the applicant's `requestedServices`.
 
 ### M3 — First end-to-end smoke test of the whole flow 🔄
 The "第一版测试": prove the complete chain against the local Rauthy harness.
