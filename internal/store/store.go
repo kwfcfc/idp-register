@@ -138,3 +138,17 @@ func (s *Store) queryRow(ctx context.Context, query string, args ...any) *sql.Ro
 
 // nowMS returns the current time as epoch milliseconds (our portable time unit).
 func nowMS() int64 { return time.Now().UnixMilli() }
+
+// isUniqueViolation reports a primary-key/unique clash across both engines.
+// SQLite (modernc): "UNIQUE constraint failed: ...". PostgreSQL (pgx):
+// "... violates unique constraint ...".
+func isUniqueViolation(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "unique constraint")
+}
+
+// isFKViolation reports a foreign-key clash across both engines. SQLite:
+// "FOREIGN KEY constraint failed". PostgreSQL: "... violates foreign key
+// constraint ...".
+func isFKViolation(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "foreign key constraint")
+}

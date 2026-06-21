@@ -25,9 +25,9 @@ const (
 // Config is the fully-resolved, validated runtime configuration.
 type Config struct {
 	// HTTP
-	Addr      string // listen address, e.g. ":8080"
-	Origin    string // public origin, e.g. https://register.example.com
-	TrustedCFIP bool // restore client IP from CF-Connecting-IP
+	Addr        string // listen address, e.g. ":8080"
+	Origin      string // public origin, e.g. https://register.example.com
+	TrustedCFIP bool   // restore client IP from CF-Connecting-IP
 
 	// Database
 	DBDriver Driver
@@ -53,6 +53,12 @@ type Config struct {
 	RauthyAPIKey     string
 	RauthyLanguage   string
 	RauthyTimezone   string
+
+	// Permission-profile group catalog: groups from the target IdP whose names
+	// match any of these are never offered to admins building a profile and are
+	// rejected if submitted (infrastructure/IdP-admin groups). The app's own
+	// admin group (AdminGroup) is always added to this set.
+	ProfileGroupDenylist []string
 
 	// Sessions / cookies
 	SessionTTL    time.Duration
@@ -121,6 +127,13 @@ func Load() (*Config, error) {
 		}
 	}
 
+	// Group denylist: explicit infra-admin groups, plus Rauthy's built-in admin
+	// group and this app's own admin group (never assignable to registrants).
+	c.ProfileGroupDenylist = dedupe(append(
+		splitList(envOr("PROFILE_GROUP_DENYLIST", "admin,rauthy_admin")),
+		c.AdminGroup,
+	))
+
 	hours := envInt("SESSION_TTL_HOURS", 12)
 	if hours <= 0 {
 		hours = 12
@@ -175,6 +188,20 @@ func splitList(s string) []string {
 		if f = strings.TrimSpace(f); f != "" {
 			out = append(out, f)
 		}
+	}
+	return out
+}
+
+// dedupe returns the input with empties and duplicates removed, order preserved.
+func dedupe(in []string) []string {
+	seen := make(map[string]bool, len(in))
+	out := make([]string, 0, len(in))
+	for _, v := range in {
+		if v = strings.TrimSpace(v); v == "" || seen[v] {
+			continue
+		}
+		seen[v] = true
+		out = append(out, v)
 	}
 	return out
 }

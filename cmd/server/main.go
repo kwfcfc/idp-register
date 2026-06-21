@@ -61,7 +61,7 @@ func run() error {
 
 	auditLog := audit.New(st)
 	tokenSvc := token.New(st, auditLog)
-	appSvc := application.New(st, prov, auditLog)
+	appSvc := application.New(st, prov, auditLog, cfg.ProfileGroupDenylist)
 	srv := web.New(cfg, auth, appSvc, tokenSvc, st)
 
 	go purgeSessions(ctx, st)

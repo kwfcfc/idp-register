@@ -26,9 +26,10 @@ import (
 )
 
 const (
-	sessionCookie = "idp_register_session"
-	stateCookie   = "idp_register_oidc_state"
-	nonceCookie   = "idp_register_oidc_nonce"
+	sessionCookie  = "idp_register_session"
+	stateCookie    = "idp_register_oidc_state"
+	nonceCookie    = "idp_register_oidc_nonce"
+	verifierCookie = "idp_register_oidc_verifier"
 )
 
 // Authenticator handles the OIDC code flow and session lifecycle.
@@ -61,7 +62,10 @@ func New(ctx context.Context, cfg *config.Config, s *store.Store) (*Authenticato
 	}, nil
 }
 
-// BeginLogin sets short-lived state/nonce cookies and returns the IdP auth URL.
+// BeginLogin sets short-lived state/nonce/PKCE cookies and returns the IdP auth
+// URL. PKCE (S256) is sent unconditionally: it is a standards feature every
+// modern OIDC IdP accepts, and some (e.g. Rauthy) require it — see invariant #2,
+// this RP stays provider-neutral.
 func (a *Authenticator) BeginLogin(w http.ResponseWriter) (string, error) {
 	state, err := randomToken()
 	if err != nil {
@@ -71,9 +75,11 @@ func (a *Authenticator) BeginLogin(w http.ResponseWriter) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	verifier := oauth2.GenerateVerifier()
 	a.setTempCookie(w, stateCookie, state)
 	a.setTempCookie(w, nonceCookie, nonce)
-	return a.oauth.AuthCodeURL(state, oidc.Nonce(nonce)), nil
+	a.setTempCookie(w, verifierCookie, verifier)
+	return a.oauth.AuthCodeURL(state, oidc.Nonce(nonce), oauth2.S256ChallengeOption(verifier)), nil
 }
 
 // ErrUnauthorized indicates a valid login that is not permitted admin access.
@@ -89,9 +95,13 @@ func (a *Authenticator) CompleteLogin(ctx context.Context, w http.ResponseWriter
 	if r.URL.Query().Get("state") != wantState.Value {
 		return nil, errors.New("state mismatch")
 	}
+	verifier, err := r.Cookie(verifierCookie)
+	if err != nil {
+		return nil, errors.New("missing PKCE verifier cookie")
+	}
 	a.clearTempCookies(w)
 
-	oauth2Token, err := a.oauth.Exchange(ctx, r.URL.Query().Get("code"))
+	oauth2Token, err := a.oauth.Exchange(ctx, r.URL.Query().Get("code"), oauth2.VerifierOption(verifier.Value))
 	if err != nil {
 		return nil, fmt.Errorf("code exchange: %w", err)
 	}
@@ -227,7 +237,7 @@ func (a *Authenticator) setTempCookie(w http.ResponseWriter, name, value string)
 }
 
 func (a *Authenticator) clearTempCookies(w http.ResponseWriter) {
-	for _, n := range []string{stateCookie, nonceCookie} {
+	for _, n := range []string{stateCookie, nonceCookie, verifierCookie} {
 		http.SetCookie(w, &http.Cookie{
 			Name: n, Value: "", Path: "/", MaxAge: -1,
 			HttpOnly: true, Secure: a.cfg.SecureCookies, SameSite: http.SameSiteLaxMode,

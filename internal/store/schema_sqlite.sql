@@ -4,12 +4,15 @@
 -- lists/objects as JSON in TEXT. Keep in lock-step with schema_pg.sql.
 
 CREATE TABLE IF NOT EXISTS permission_profiles (
-  id          TEXT PRIMARY KEY,
-  label       TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  groups      TEXT NOT NULL DEFAULT '[]', -- JSON array of group strings
-  created_at  INTEGER NOT NULL,
-  updated_at  INTEGER NOT NULL
+  id                TEXT PRIMARY KEY,
+  label             TEXT NOT NULL,
+  description       TEXT NOT NULL DEFAULT '',
+  groups            TEXT NOT NULL DEFAULT '[]', -- JSON array of group strings
+  public_selectable INTEGER NOT NULL DEFAULT 0, -- 1 = offered as an option in the public form
+  public_label      TEXT NOT NULL DEFAULT '',   -- user-facing option label (falls back to label)
+  sort_order        INTEGER NOT NULL DEFAULT 0, -- ascending display order in the public form
+  created_at        INTEGER NOT NULL,
+  updated_at        INTEGER NOT NULL
 );
 
 -- Synapse-aligned registration tokens (plaintext). See docs/ARCHITECTURE.md.

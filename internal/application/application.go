@@ -15,6 +15,7 @@ package application
 import (
 	"context"
 	"errors"
+	"sort"
 	"strings"
 	"time"
 
@@ -32,14 +33,22 @@ func nowMS() int64 { return time.Now().UnixMilli() }
 
 // Service orchestrates applications.
 type Service struct {
-	store *store.Store
-	prov  provisioner.Provisioner
-	audit *audit.Logger
+	store    *store.Store
+	prov     provisioner.Provisioner
+	audit    *audit.Logger
+	denylist map[string]bool // group names never assignable to a profile
 }
 
-// New constructs the application Service.
-func New(s *store.Store, p provisioner.Provisioner, a *audit.Logger) *Service {
-	return &Service{store: s, prov: p, audit: a}
+// New constructs the application Service. groupDenylist names IdP groups that
+// must never appear in a permission profile (infra/admin groups).
+func New(s *store.Store, p provisioner.Provisioner, a *audit.Logger, groupDenylist []string) *Service {
+	deny := make(map[string]bool, len(groupDenylist))
+	for _, g := range groupDenylist {
+		if g = strings.TrimSpace(g); g != "" {
+			deny[g] = true
+		}
+	}
+	return &Service{store: s, prov: p, audit: a, denylist: deny}
 }
 
 // SubmitInput is the public form payload (already CAPTCHA-verified upstream).
@@ -47,7 +56,8 @@ type SubmitInput struct {
 	Email           string
 	Username        string
 	ReviewText      string
-	InviteCode      string // optional plaintext; never logged
+	InviteCode      string   // optional plaintext; never logged
+	Services        []string // requested service/profile ids (advisory; validated)
 	CaptchaProvider string
 	SubmittedIP     string
 }
@@ -70,11 +80,12 @@ func (s *Service) Submit(ctx context.Context, in SubmitInput) (*SubmitResult, er
 	usernameNorm := strings.ToLower(strings.TrimSpace(in.Username))
 
 	app := &store.Application{
-		ID:         uuid.NewString(),
-		Email:      strings.TrimSpace(in.Email),
-		Username:   strings.TrimSpace(in.Username),
-		ReviewText: strings.TrimSpace(in.ReviewText),
-		Status:     store.StatusPending,
+		ID:                uuid.NewString(),
+		Email:             strings.TrimSpace(in.Email),
+		Username:          strings.TrimSpace(in.Username),
+		ReviewText:        strings.TrimSpace(in.ReviewText),
+		RequestedServices: s.validServices(ctx, in.Services),
+		Status:            store.StatusPending,
 	}
 	if in.CaptchaProvider != "" {
 		app.CaptchaProvider = &in.CaptchaProvider
@@ -251,4 +262,165 @@ func (s *Service) groupsForProfile(ctx context.Context, profileID *string) []str
 		return nil
 	}
 	return prof.Groups
+}
+
+// validServices filters a requested service selection down to ids that are
+// actually public-selectable. Tampered/unknown ids are silently dropped — the
+// field is advisory (the real groups are resolved from a profile at approval),
+// so this just keeps the stored intent clean. Best-effort: on a DB error the
+// selection is dropped entirely rather than trusted.
+func (s *Service) validServices(ctx context.Context, requested []string) []string {
+	if len(requested) == 0 {
+		return nil
+	}
+	allowed, err := s.store.PublicServiceIDs(ctx)
+	if err != nil {
+		return nil
+	}
+	seen := map[string]bool{}
+	out := make([]string, 0, len(requested))
+	for _, id := range requested {
+		id = strings.TrimSpace(id)
+		if allowed[id] && !seen[id] {
+			seen[id] = true
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// ----- permission-profile administration (ADR-0012) -----
+
+// PublicServices returns the anonymous-safe option list for the public form.
+func (s *Service) PublicServices(ctx context.Context) ([]store.PublicService, error) {
+	return s.store.ListPublicServices(ctx)
+}
+
+// ListProfiles returns all profiles (admin view, includes groups).
+func (s *Service) ListProfiles(ctx context.Context) ([]store.PermissionProfile, error) {
+	return s.store.ListProfiles(ctx)
+}
+
+// AvailableGroups returns the target-IdP groups a profile may draw from: the
+// live catalog minus the denylist, sorted by name for a stable UI.
+func (s *Service) AvailableGroups(ctx context.Context) ([]provisioner.Group, error) {
+	all, err := s.prov.ListGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]provisioner.Group, 0, len(all))
+	for _, g := range all {
+		if !s.denylist[g.Name] {
+			out = append(out, g)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out, nil
+}
+
+// ProfileInput is the admin-supplied shape for creating/updating a profile.
+type ProfileInput struct {
+	ID               string // create only; ignored on update
+	Label            string
+	Description      string
+	Groups           []string
+	PublicSelectable bool
+	PublicLabel      string
+	SortOrder        int64
+}
+
+// validateGroups rejects a profile whose groups are not all in the allowed
+// catalog (exist in the target IdP and are not denied). This is the server-side
+// guard that a denied/admin group can never be smuggled into a profile.
+func (s *Service) validateGroups(ctx context.Context, groups []string) error {
+	allowed, err := s.AvailableGroups(ctx)
+	if err != nil {
+		return errors.New("could not load the group catalog from the target IdP: " + err.Error())
+	}
+	ok := make(map[string]bool, len(allowed))
+	for _, g := range allowed {
+		ok[g.Name] = true
+	}
+	for _, g := range groups {
+		if !ok[g] {
+			return errors.New("group not assignable (unknown or restricted): " + g)
+		}
+	}
+	return nil
+}
+
+// CreateProfile validates and stores a new permission profile.
+func (s *Service) CreateProfile(ctx context.Context, in ProfileInput, actor store.AdminUser) (*store.PermissionProfile, error) {
+	id := strings.TrimSpace(in.ID)
+	if id == "" || strings.ContainsAny(id, " \t\n") {
+		return nil, errors.New("a non-empty id without whitespace is required")
+	}
+	if strings.TrimSpace(in.Label) == "" {
+		return nil, errors.New("a label is required")
+	}
+	groups := normalizeGroups(in.Groups)
+	if err := s.validateGroups(ctx, groups); err != nil {
+		return nil, err
+	}
+	p := &store.PermissionProfile{
+		ID:               id,
+		Label:            strings.TrimSpace(in.Label),
+		Description:      strings.TrimSpace(in.Description),
+		Groups:           groups,
+		PublicSelectable: in.PublicSelectable,
+		PublicLabel:      strings.TrimSpace(in.PublicLabel),
+		SortOrder:        in.SortOrder,
+	}
+	if err := s.store.CreateProfile(ctx, p); err != nil {
+		return nil, err
+	}
+	_ = s.audit.Record(ctx, actor, "profile.create", "profile", p.ID, map[string]any{"groups": p.Groups})
+	return p, nil
+}
+
+// UpdateProfile validates and replaces the mutable fields of a profile.
+func (s *Service) UpdateProfile(ctx context.Context, id string, in ProfileInput, actor store.AdminUser) (*store.PermissionProfile, error) {
+	if strings.TrimSpace(in.Label) == "" {
+		return nil, errors.New("a label is required")
+	}
+	groups := normalizeGroups(in.Groups)
+	if err := s.validateGroups(ctx, groups); err != nil {
+		return nil, err
+	}
+	p := &store.PermissionProfile{
+		ID:               id,
+		Label:            strings.TrimSpace(in.Label),
+		Description:      strings.TrimSpace(in.Description),
+		Groups:           groups,
+		PublicSelectable: in.PublicSelectable,
+		PublicLabel:      strings.TrimSpace(in.PublicLabel),
+		SortOrder:        in.SortOrder,
+	}
+	if err := s.store.UpdateProfile(ctx, p); err != nil {
+		return nil, err
+	}
+	_ = s.audit.Record(ctx, actor, "profile.update", "profile", p.ID, map[string]any{"groups": p.Groups})
+	return p, nil
+}
+
+// DeleteProfile removes a profile (store returns ErrConflict if referenced).
+func (s *Service) DeleteProfile(ctx context.Context, id string, actor store.AdminUser) error {
+	if err := s.store.DeleteProfile(ctx, id); err != nil {
+		return err
+	}
+	_ = s.audit.Record(ctx, actor, "profile.delete", "profile", id, nil)
+	return nil
+}
+
+// normalizeGroups trims, drops empties, and de-duplicates a group list.
+func normalizeGroups(in []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0, len(in))
+	for _, g := range in {
+		if g = strings.TrimSpace(g); g != "" && !seen[g] {
+			seen[g] = true
+			out = append(out, g)
+		}
+	}
+	return out
 }

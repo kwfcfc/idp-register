@@ -9,6 +9,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"errors"
 	"io/fs"
 	"net"
 	"net/http"
@@ -24,6 +25,7 @@ import (
 
 // all: is required so SvelteKit's _app/ directory (underscore-prefixed, which
 // the default go:embed pattern skips) is included in the binary.
+//
 //go:embed all:assets
 var assets embed.FS
 
@@ -54,6 +56,7 @@ func (s *Server) Handler() http.Handler {
 	})
 
 	// Public registration.
+	mux.HandleFunc("GET /api/form", s.handlePublicForm)
 	mux.HandleFunc("POST /api/register", s.handleRegister)
 
 	// Admin OIDC login.
@@ -63,7 +66,11 @@ func (s *Server) Handler() http.Handler {
 
 	// Admin API (session-gated).
 	mux.HandleFunc("GET /api/admin/me", s.admin(s.handleMe))
+	mux.HandleFunc("GET /api/admin/groups", s.admin(s.handleGroups))
 	mux.HandleFunc("GET /api/admin/profiles", s.admin(s.handleProfiles))
+	mux.HandleFunc("POST /api/admin/profiles", s.admin(s.handleCreateProfile))
+	mux.HandleFunc("PUT /api/admin/profiles/{id}", s.admin(s.handleUpdateProfile))
+	mux.HandleFunc("DELETE /api/admin/profiles/{id}", s.admin(s.handleDeleteProfile))
 	mux.HandleFunc("GET /api/admin/applications", s.admin(s.handleListApplications))
 	mux.HandleFunc("GET /api/admin/applications/{id}", s.admin(s.handleGetApplication))
 	mux.HandleFunc("POST /api/admin/applications/{id}/approve", s.admin(s.handleApprove))
@@ -82,12 +89,30 @@ func (s *Server) Handler() http.Handler {
 
 // ----- public -----
 
+// handlePublicForm serves the anonymous form configuration: the selectable
+// service options (no IdP groups) and the selection mode. ADR-0012.
+func (s *Server) handlePublicForm(w http.ResponseWriter, r *http.Request) {
+	services, err := s.apps.PublicServices(r.Context())
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	if services == nil {
+		services = []store.PublicService{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"services":      services,
+		"selectionMode": "single", // multi-select deferred (ADR-0012)
+	})
+}
+
 type registerRequest struct {
-	Email          string `json:"email"`
-	Username       string `json:"username"`
-	ReviewText     string `json:"reviewText"`
-	InviteCode     string `json:"inviteCode"`
-	TurnstileToken string `json:"turnstileToken"`
+	Email          string   `json:"email"`
+	Username       string   `json:"username"`
+	ReviewText     string   `json:"reviewText"`
+	InviteCode     string   `json:"inviteCode"`
+	Services       []string `json:"services"`
+	TurnstileToken string   `json:"turnstileToken"`
 }
 
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +141,7 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		Username:        req.Username,
 		ReviewText:      req.ReviewText,
 		InviteCode:      req.InviteCode,
+		Services:        req.Services,
 		CaptchaProvider: captchaProvider(s.cfg),
 		SubmittedIP:     clientIP(r, s.cfg.TrustedCFIP),
 	})
@@ -196,12 +222,79 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request, u store.AdminU
 }
 
 func (s *Server) handleProfiles(w http.ResponseWriter, r *http.Request, _ store.AdminUser) {
-	profiles, err := s.store.ListProfiles(r.Context())
+	profiles, err := s.apps.ListProfiles(r.Context())
 	if err != nil {
 		writeError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, profiles)
+}
+
+// handleGroups returns the assignable group catalog (live from the target IdP,
+// minus the denylist) for the profile editor.
+func (s *Server) handleGroups(w http.ResponseWriter, r *http.Request, _ store.AdminUser) {
+	groups, err := s.apps.AvailableGroups(r.Context())
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, groups)
+}
+
+type profileBody struct {
+	ID               string   `json:"id"`
+	Label            string   `json:"label"`
+	Description      string   `json:"description"`
+	Groups           []string `json:"groups"`
+	PublicSelectable bool     `json:"publicSelectable"`
+	PublicLabel      string   `json:"publicLabel"`
+	SortOrder        int64    `json:"sortOrder"`
+}
+
+func (b profileBody) toInput() application.ProfileInput {
+	return application.ProfileInput{
+		ID:               b.ID,
+		Label:            b.Label,
+		Description:      b.Description,
+		Groups:           b.Groups,
+		PublicSelectable: b.PublicSelectable,
+		PublicLabel:      b.PublicLabel,
+		SortOrder:        b.SortOrder,
+	}
+}
+
+func (s *Server) handleCreateProfile(w http.ResponseWriter, r *http.Request, u store.AdminUser) {
+	var b profileBody
+	if !readJSON(w, r, &b) {
+		return
+	}
+	p, err := s.apps.CreateProfile(r.Context(), b.toInput(), u)
+	if err != nil {
+		writeMutationError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, p)
+}
+
+func (s *Server) handleUpdateProfile(w http.ResponseWriter, r *http.Request, u store.AdminUser) {
+	var b profileBody
+	if !readJSON(w, r, &b) {
+		return
+	}
+	p, err := s.apps.UpdateProfile(r.Context(), r.PathValue("id"), b.toInput(), u)
+	if err != nil {
+		writeMutationError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, p)
+}
+
+func (s *Server) handleDeleteProfile(w http.ResponseWriter, r *http.Request, u store.AdminUser) {
+	if err := s.apps.DeleteProfile(r.Context(), r.PathValue("id"), u); err != nil {
+		writeMutationError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }
 
 func (s *Server) handleListApplications(w http.ResponseWriter, r *http.Request, _ store.AdminUser) {
@@ -375,8 +468,30 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// writeError maps store sentinels to HTTP status for read/idempotent handlers:
+// not-found → 404, conflict → 409, everything else → 500.
 func writeError(w http.ResponseWriter, err error) {
-	writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
+	case errors.Is(err, store.ErrConflict):
+		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+	default:
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+}
+
+// writeMutationError is writeError for create/update handlers: a non-sentinel
+// error is treated as input validation (400) rather than a server fault.
+func writeMutationError(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
+	case errors.Is(err, store.ErrConflict):
+		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
+	default:
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
 }
 
 func readJSON(w http.ResponseWriter, r *http.Request, dst any) bool {

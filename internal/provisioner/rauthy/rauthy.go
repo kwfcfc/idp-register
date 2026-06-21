@@ -119,6 +119,16 @@ type rauthyUser struct {
 	Roles  []string `json:"roles"`
 }
 
+// ListGroups returns the groups Rauthy has defined (GET /groups). Requires the
+// API key to carry Groups:read access.
+func (c *Client) ListGroups(ctx context.Context) ([]provisioner.Group, error) {
+	var groups []provisioner.Group
+	if _, err := c.do(ctx, http.MethodGet, "/groups", nil, &groups); err != nil {
+		return nil, err
+	}
+	return groups, nil
+}
+
 // FindUserByEmail looks up a user by email; (nil, false, nil) when absent.
 func (c *Client) FindUserByEmail(ctx context.Context, email string) (*provisioner.User, bool, error) {
 	var u rauthyUser

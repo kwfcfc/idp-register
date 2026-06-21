@@ -6,12 +6,15 @@
 -- so the same Go code drives both engines.
 
 CREATE TABLE IF NOT EXISTS permission_profiles (
-  id          TEXT PRIMARY KEY,
-  label       TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  groups      TEXT NOT NULL DEFAULT '[]',
-  created_at  BIGINT NOT NULL,
-  updated_at  BIGINT NOT NULL
+  id                TEXT PRIMARY KEY,
+  label             TEXT NOT NULL,
+  description       TEXT NOT NULL DEFAULT '',
+  groups            TEXT NOT NULL DEFAULT '[]',
+  public_selectable INTEGER NOT NULL DEFAULT 0,
+  public_label      TEXT NOT NULL DEFAULT '',
+  sort_order        INTEGER NOT NULL DEFAULT 0,
+  created_at        BIGINT NOT NULL,
+  updated_at        BIGINT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS registration_tokens (

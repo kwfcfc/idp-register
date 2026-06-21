@@ -31,10 +31,22 @@ type User struct {
 	Groups []string
 }
 
+// Group is the provider-neutral view of an assignable IdP group. Permission
+// profiles are composed from these (see docs/DECISIONS.md ADR-0012); the app
+// never invents group names, it only references what the target IdP defines.
+type Group struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // Provisioner creates users in a target IdP and kicks off credential setup.
 type Provisioner interface {
 	// Name identifies the implementation (e.g. "rauthy"), for logs/audit.
 	Name() string
+
+	// ListGroups returns the groups defined in the target IdP (the catalog a
+	// permission profile may draw from). Read-only.
+	ListGroups(ctx context.Context) ([]Group, error)
 
 	// FindUserByEmail returns the user and true if one exists, false if not.
 	FindUserByEmail(ctx context.Context, email string) (*User, bool, error)

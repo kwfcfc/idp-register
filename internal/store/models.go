@@ -7,6 +7,10 @@ import "errors"
 // ErrNotFound is returned by repository lookups when no row matches.
 var ErrNotFound = errors.New("not found")
 
+// ErrConflict is returned on a constraint clash: a duplicate primary key, or a
+// delete blocked because another row still references the target.
+var ErrConflict = errors.New("conflict")
+
 // Application lifecycle states (mirror the CHECK list in the schema design).
 const (
 	StatusPending            = "pending"
@@ -32,8 +36,14 @@ type PermissionProfile struct {
 	Label       string   `json:"label"`
 	Description string   `json:"description"`
 	Groups      []string `json:"groups"`
-	CreatedAt   int64    `json:"createdAt"`
-	UpdatedAt   int64    `json:"updatedAt"`
+	// PublicSelectable offers this profile as a choice in the public form;
+	// PublicLabel is the user-facing text (falls back to Label); SortOrder is
+	// the ascending display order. See docs/DECISIONS.md ADR-0012.
+	PublicSelectable bool   `json:"publicSelectable"`
+	PublicLabel      string `json:"publicLabel"`
+	SortOrder        int64  `json:"sortOrder"`
+	CreatedAt        int64  `json:"createdAt"`
+	UpdatedAt        int64  `json:"updatedAt"`
 }
 
 // RegistrationToken is a plaintext, Synapse-aligned invite code.
@@ -69,24 +79,24 @@ func (t *RegistrationToken) Valid(now int64) bool {
 
 // Application is a submitted registration request moving through review.
 type Application struct {
-	ID                string  `json:"id"`
-	TokenID           *string `json:"tokenId"`
-	Email             string  `json:"email"`
-	Username          string  `json:"username"`
-	ReviewText        string  `json:"reviewText"`
+	ID                string   `json:"id"`
+	TokenID           *string  `json:"tokenId"`
+	Email             string   `json:"email"`
+	Username          string   `json:"username"`
+	ReviewText        string   `json:"reviewText"`
 	RequestedServices []string `json:"requestedServices"`
-	Status            string  `json:"status"`
-	CaptchaProvider   *string `json:"captchaProvider"`
-	SubmittedIP       *string `json:"submittedIp"`
-	ApprovedProfileID *string `json:"approvedProfileId"`
-	ProviderUserID    *string `json:"providerUserId"`
-	ProvisioningError *string `json:"provisioningError"`
-	DecisionNote      *string `json:"decisionNote"`
-	ReviewedAt        *int64  `json:"reviewedAt"`
-	ReviewedBySub     *string `json:"reviewedBySub"`
-	ReviewedByEmail   *string `json:"reviewedByEmail"`
-	CreatedAt         int64   `json:"createdAt"`
-	UpdatedAt         int64   `json:"updatedAt"`
+	Status            string   `json:"status"`
+	CaptchaProvider   *string  `json:"captchaProvider"`
+	SubmittedIP       *string  `json:"submittedIp"`
+	ApprovedProfileID *string  `json:"approvedProfileId"`
+	ProviderUserID    *string  `json:"providerUserId"`
+	ProvisioningError *string  `json:"provisioningError"`
+	DecisionNote      *string  `json:"decisionNote"`
+	ReviewedAt        *int64   `json:"reviewedAt"`
+	ReviewedBySub     *string  `json:"reviewedBySub"`
+	ReviewedByEmail   *string  `json:"reviewedByEmail"`
+	CreatedAt         int64    `json:"createdAt"`
+	UpdatedAt         int64    `json:"updatedAt"`
 }
 
 // AuditEntry is one admin action recorded in the audit log.
