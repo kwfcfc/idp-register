@@ -1,0 +1,115 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { apiSend, ApiError } from '$lib/api';
+
+  // Optional Cloudflare Turnstile. The site key is a build-time public value;
+  // when unset, the backend also has its secret unset and skips verification.
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+
+  let email = $state('');
+  let username = $state('');
+  let reviewText = $state('');
+  let inviteCode = $state(page.url.searchParams.get('token') ?? '');
+  let turnstileToken = $state('');
+
+  let submitting = $state(false);
+  let done = $state(false);
+  let error = $state('');
+
+  onMount(() => {
+    if (!siteKey) return;
+    // Turnstile invokes this global with the solved token; feed it into state.
+    (window as unknown as { onTurnstileToken?: (t: string) => void }).onTurnstileToken = (t) => {
+      turnstileToken = t;
+    };
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true;
+    s.defer = true;
+    document.head.appendChild(s);
+  });
+
+  async function submit(event: SubmitEvent) {
+    event.preventDefault();
+    error = '';
+    submitting = true;
+    try {
+      await apiSend('POST', '/api/register', {
+        email: email.trim(),
+        username: username.trim(),
+        reviewText: reviewText.trim(),
+        inviteCode: inviteCode.trim(),
+        turnstileToken
+      });
+      done = true;
+    } catch (e) {
+      error = e instanceof ApiError ? e.message : '提交失败，请稍后重试。';
+    } finally {
+      submitting = false;
+    }
+  }
+</script>
+
+<svelte:head><title>申请注册 · idp-register</title></svelte:head>
+
+<main class="center-shell">
+  <section class="center-card">
+    <div class="brand-mark" style="display:grid;place-items:center">◈</div>
+    <p class="eyebrow">REGISTRATION</p>
+    <h1>申请注册</h1>
+
+    {#if done}
+      <div class="alert success" style="margin-top:20px">
+        申请已收到。如果通过审核，你会收到一封用于设置账户的邮件。
+      </div>
+      <p class="lede" style="margin-bottom:0">你可以关闭此页面了。</p>
+    {:else}
+      <p class="lede">填写下面的信息提交注册申请。持有邀请码可被自动批准；否则将由管理员人工审核。</p>
+
+      {#if error}<div class="alert error">{error}</div>{/if}
+
+      <form onsubmit={submit}>
+        <div class="field">
+          <label for="email">邮箱</label>
+          <input id="email" type="email" bind:value={email} required placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="username">用户名</label>
+          <input id="username" bind:value={username} placeholder="希望使用的用户名" />
+        </div>
+        <div class="field">
+          <label for="reviewText">申请说明</label>
+          <textarea id="reviewText" bind:value={reviewText} placeholder="简要说明你是谁、为什么申请。"
+          ></textarea>
+        </div>
+        <div class="field">
+          <label for="inviteCode">邀请码（可选）</label>
+          <input id="inviteCode" bind:value={inviteCode} placeholder="若持有邀请码请填写" />
+          <div class="help">有效邀请码可自动批准；留空则进入人工审核。</div>
+        </div>
+
+        {#if siteKey}
+          <div
+            class="cf-turnstile"
+            style="margin-top:16px"
+            data-sitekey={siteKey}
+            data-callback="onTurnstileToken"
+          ></div>
+        {/if}
+
+        <div class="form-actions">
+          <button class="button primary" type="submit" disabled={submitting}>
+            {submitting ? '提交中…' : '提交申请'}
+          </button>
+        </div>
+      </form>
+
+      <div class="security-note">
+        <span>●</span>
+        密码与多因素认证均由身份提供方在激活邮件中设置，本服务不接触你的密码。
+      </div>
+    {/if}
+  </section>
+</main>

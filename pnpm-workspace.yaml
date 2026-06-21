@@ -1,5 +1,5 @@
 packages:
-  - .
+  - web
   - tools/cli
 allowBuilds:
   esbuild: true

@@ -22,14 +22,13 @@ deployable as one OCI image behind Nginx/Cloudflare.
 
 ## Status
 
-> ⚠️ **In progress / being re-based.** An initial AI-generated **full-stack SvelteKit**
-> draft exists (admin site only, PostgreSQL-only, HMAC-digest codes). It is being re-based
-> to the **target architecture below**. Treat the docs as the source of truth, not the
-> current `src/` tree.
+> ⚠️ **In progress.** The Go backend (`cmd/`, `internal/`) is implemented and the SvelteKit
+> frontend has been ported to `web/` (`adapter-static`, embedded via `go:embed`). CI/CD and
+> some hardening remain. Treat the docs as the source of truth.
 
-**Target stack:** Go backend · SvelteKit frontend (`adapter-static`, embedded via
-`go:embed`) · `database/sql` over SQLite **or** PostgreSQL · generic OIDC admin login ·
-plaintext Synapse-style invite codes · GPLv3-or-later.
+**Stack:** Go backend · SvelteKit frontend (`adapter-static`, built into
+`internal/web/assets` and embedded via `go:embed`) · `database/sql` over SQLite **or**
+PostgreSQL · generic OIDC admin login · plaintext Synapse-style invite codes · GPLv3-or-later.
 
 ## Documentation
 
@@ -50,7 +49,30 @@ plaintext Synapse-style invite codes · GPLv3-or-later.
 
 ## Development
 
-> Re-base to Go is underway; commands below will change. See `AGENTS.md` for the target layout.
+The frontend (`web/`, a SvelteKit SPA) builds straight into `internal/web/assets`, which the
+Go binary embeds via `//go:embed all:assets`. Copy `.env.example` to `.env` and fill it in.
+
+```sh
+# Frontend dev (hot reload on :5173, proxies /api + /auth to the Go server on :8080)
+pnpm install
+pnpm --filter idp-register-web dev      # or: pnpm dev
+
+# Run the Go backend (serves the embedded SPA + JSON API on :8080)
+go run ./cmd/server
+
+# Production build: build the SPA, then the binary embeds it
+pnpm --filter idp-register-web build    # writes internal/web/assets
+CGO_ENABLED=0 go build -o idp-register ./cmd/server
+
+# Or build the single OCI image (Node → Go → distroless, multi-stage)
+docker build -t idp-register .
+
+# Tests (store layer; SQLite in-memory by default)
+go test ./...
+```
+
+> The embedded assets are generated and git-ignored; `internal/web/assets/.gitkeep` keeps the
+> Go package compiling before the first frontend build. See `AGENTS.md` for the full layout.
 
 ## License
 

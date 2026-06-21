@@ -22,7 +22,9 @@ import (
 	"forgejo.goba.ip-dynamic.org/gobro/idp-register/internal/token"
 )
 
-//go:embed assets
+// all: is required so SvelteKit's _app/ directory (underscore-prefixed, which
+// the default go:embed pattern skips) is included in the binary.
+//go:embed all:assets
 var assets embed.FS
 
 // Server wires the HTTP handlers to the service layer.
@@ -336,7 +338,9 @@ func (s *Server) handleAudit(w http.ResponseWriter, r *http.Request, _ store.Adm
 // ----- static SPA -----
 
 func (s *Server) spaHandler() http.Handler {
-	sub, err := fs.Sub(assets, "assets")
+	// The SvelteKit build (adapter-static) lands in assets/spa; the assets root
+	// itself only holds a committed sentinel so the package compiles pre-build.
+	sub, err := fs.Sub(assets, "assets/spa")
 	if err != nil {
 		panic(err) // embedded path is a compile-time constant; cannot fail
 	}

@@ -1,42 +1,36 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# The Go service applies the schema on startup (no separate migrate step) and
+# embeds the frontend, so this is just Postgres + the single app container.
+# For SQLite instead, drop the postgres service and the DATABASE_URL override
+# and mount a volume for the SQLITE_PATH file.
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: invite_admin
-      POSTGRES_USER: invite_admin
+      POSTGRES_DB: idp_register
+      POSTGRES_USER: idp_register
       POSTGRES_PASSWORD: change-me
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U invite_admin -d invite_admin"]
+      test: ["CMD-SHELL", "pg_isready -U idp_register -d idp_register"]
       interval: 5s
       timeout: 3s
       retries: 20
     restart: unless-stopped
 
-  migrate:
-    build: .
-    env_file: .env
-    environment:
-      DATABASE_URL: postgresql://invite_admin:change-me@postgres:5432/invite_admin
-    command: ["./node_modules/.bin/tsx", "scripts/migrate.ts"]
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: "no"
-
   app:
     build: .
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://invite_admin:change-me@postgres:5432/invite_admin
-      HOST: 0.0.0.0
-      PORT: 3000
+      # Overrides .env so the app reaches Postgres on the compose network.
+      DATABASE_URL: postgres://idp_register:change-me@postgres:5432/idp_register
+      ADDR: ":8080"
     ports:
-      - "3000:3000"
+      - "8080:8080"
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

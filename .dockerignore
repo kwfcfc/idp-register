@@ -1,6 +1,12 @@
-node_modules
-.svelte-kit
-build
-.env
 .git
+**/node_modules
+**/.svelte-kit
+**/build
+internal/web/assets
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+.direnv
 *.zip

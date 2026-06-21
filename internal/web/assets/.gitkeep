@@ -1,0 +1,3 @@
+# Placeholder so the Go package compiles before the frontend is built.
+# The SvelteKit SPA (web/) is built into ./spa and embedded via
+# //go:embed all:assets (internal/web/web.go).
