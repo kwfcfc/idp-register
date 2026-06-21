@@ -41,7 +41,7 @@ Make the admin panel and public form actually drive M1.
 - ✅ Approval UI picks from existing profiles (`admin/applications/[id]` + invite-code mint),
   and the application detail view shows the applicant's `requestedServices`.
 
-### M3 — First end-to-end smoke test of the whole flow 🔄
+### M3 — First end-to-end smoke test of the whole flow ✅
 The "第一版测试": prove the complete chain against the local Rauthy harness.
 
 Harness plumbing is now **verified working** (2026-06-21): admin OIDC login completes
@@ -50,7 +50,7 @@ Harness plumbing is now **verified working** (2026-06-21): admin OIDC login comp
 `Groups:read`, which only takes effect after a `docker compose down -v` volume reset — the
 key is create-if-absent). Both gotchas are captured in the dev-harness notes.
 
-Remaining (the actual flow, not yet captured as a repeatable test):
+Verified flow:
 - ✅ Admin creates a profile from real Rauthy groups → marks it public.
 - ✅ Public user submits the form selecting that service.
 - ✅ Admin approves with a profile → user is provisioned in Rauthy with the right groups.
@@ -63,12 +63,12 @@ Remaining (the actual flow, not yet captured as a repeatable test):
   permission profile/service, and a valid token always provisions directly into that
   profile. The run also found and fixed the app-side bug where `approved_profile_id`
   was not persisted during auto-approval application creation.
-- ⬜ Capture as a repeatable script/integration test (httptest + a Rauthy stub, plus a
-  manual checklist against `deploy/dev/`).
-
-> **Uncommitted:** the M1 backend + M2 frontend work (incl. the PKCE fix) is all in the
-> working tree, not yet committed. Commit before/with M3 so the smoke-test baseline is
-> reproducible.
+- ✅ Captured as repeatable application-service integration tests with a fake
+  `Provisioner` in `internal/application/application_test.go`, covering public-service
+  filtering, manual approval provisioning, profile-bound invite auto-approval, invalid
+  invite fallback, token counters, and provisioning-failure retry/reject cleanup.
+- ✅ Manual checklist against the real `deploy/dev/` Rauthy + Mailcrab harness is
+  documented in `deploy/dev/README.md`.
 
 ### M4 — Multi-select services 🧊
 Deferred from ADR-0012. Needs union-of-groups provisioning and storing multiple approved
