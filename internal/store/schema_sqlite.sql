@@ -1,0 +1,97 @@
+-- SPDX-License-Identifier: GPL-3.0-or-later
+-- SQLite schema. Portability rules (AGENTS.md invariant #1): app-generated
+-- UUID TEXT PKs, epoch-ms INTEGER timestamps, booleans as INTEGER 0/1,
+-- lists/objects as JSON in TEXT. Keep in lock-step with schema_pg.sql.
+
+CREATE TABLE IF NOT EXISTS permission_profiles (
+  id          TEXT PRIMARY KEY,
+  label       TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  groups      TEXT NOT NULL DEFAULT '[]', -- JSON array of group strings
+  created_at  INTEGER NOT NULL,
+  updated_at  INTEGER NOT NULL
+);
+
+-- Synapse-aligned registration tokens (plaintext). See docs/ARCHITECTURE.md.
+CREATE TABLE IF NOT EXISTS registration_tokens (
+  id               TEXT PRIMARY KEY,
+  token            TEXT NOT NULL UNIQUE,        -- plaintext, never logged
+  uses_allowed     INTEGER,                     -- NULL = unlimited
+  pending          INTEGER NOT NULL DEFAULT 0,
+  completed        INTEGER NOT NULL DEFAULT 0,
+  expiry_time      INTEGER,                     -- epoch ms; NULL = never
+  active           INTEGER NOT NULL DEFAULT 1,  -- manual disable switch
+  email_constraint TEXT,                        -- lowercased; binds code to one email
+  profile_id       TEXT REFERENCES permission_profiles(id),
+  note             TEXT NOT NULL DEFAULT '',
+  created_by_sub   TEXT NOT NULL,
+  created_by_email TEXT NOT NULL,
+  created_at       INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS registration_tokens_active_idx
+  ON registration_tokens(active, expiry_time);
+
+CREATE TABLE IF NOT EXISTS applications (
+  id                  TEXT PRIMARY KEY,
+  token_id            TEXT REFERENCES registration_tokens(id),
+  email               TEXT NOT NULL,
+  email_normalized    TEXT NOT NULL,
+  username            TEXT NOT NULL DEFAULT '',
+  username_normalized TEXT NOT NULL DEFAULT '',
+  review_text         TEXT NOT NULL DEFAULT '',
+  requested_services  TEXT NOT NULL DEFAULT '[]', -- JSON array
+  status              TEXT NOT NULL DEFAULT 'pending',
+  captcha_provider    TEXT,
+  captcha_verified_at INTEGER,
+  submitted_ip        TEXT,
+  approved_profile_id TEXT REFERENCES permission_profiles(id),
+  provider_user_id    TEXT,                       -- IdP-side user id (provider-neutral)
+  provisioning_error  TEXT,
+  decision_note       TEXT,
+  reviewed_at         INTEGER,
+  reviewed_by_sub     TEXT,
+  reviewed_by_email   TEXT,
+  created_at          INTEGER NOT NULL,
+  updated_at          INTEGER NOT NULL
+);
+
+-- One live application per email/username (the "in-flight or accepted" states).
+CREATE UNIQUE INDEX IF NOT EXISTS applications_active_email_unique
+  ON applications(email_normalized)
+  WHERE status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'needs_changes');
+
+CREATE UNIQUE INDEX IF NOT EXISTS applications_active_username_unique
+  ON applications(username_normalized)
+  WHERE username_normalized <> ''
+    AND status IN ('pending', 'provisioning', 'provisioning_failed', 'approved', 'needs_changes');
+
+CREATE INDEX IF NOT EXISTS applications_status_created_idx
+  ON applications(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  id           TEXT PRIMARY KEY,
+  token_digest TEXT NOT NULL UNIQUE,        -- sha256 of the opaque cookie value
+  subject      TEXT NOT NULL,
+  email        TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  groups       TEXT NOT NULL DEFAULT '[]',  -- JSON array
+  expires_at   INTEGER NOT NULL,
+  created_at   INTEGER NOT NULL,
+  last_seen_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS admin_sessions_expires_idx ON admin_sessions(expires_at);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id          TEXT PRIMARY KEY,
+  actor_sub   TEXT NOT NULL,
+  actor_email TEXT NOT NULL,
+  action      TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id   TEXT NOT NULL,
+  details     TEXT NOT NULL DEFAULT '{}',   -- JSON object
+  created_at  INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS audit_log_created_idx ON audit_log(created_at DESC);
