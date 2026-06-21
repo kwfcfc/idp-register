@@ -1,0 +1,27 @@
+[
+  {
+    "id": "idp-register",
+    "name": "idp-register",
+    "secret": {
+      "Plain": "9c6c109b601b78597d31c91653008e26086e1b0ff89629785cb9226006426e1a"
+    },
+    "redirect_uris": [
+      "http://localhost:8081/auth/callback",
+      "http://localhost:5173/auth/callback"
+    ],
+    "allowed_origins": [
+      "http://localhost:8081",
+      "http://localhost:5173"
+    ],
+    "enabled": true,
+    "flows_enabled": ["authorization_code", "refresh_token"],
+    "access_token_alg": "RS256",
+    "id_token_alg": "RS256",
+    "auth_code_lifetime": 300,
+    "access_token_lifetime": 1800,
+    "scopes": ["openid", "email", "profile", "groups"],
+    "default_scopes": ["openid", "email", "profile", "groups"],
+    "challenges": ["S256"],
+    "force_mfa": false
+  }
+]

@@ -1,0 +1,108 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+
+# Local IdP test setup (Rauthy)
+
+The simplest way to exercise idp-register end-to-end against a real OIDC IdP.
+Compose runs **only Rauthy** (HTTP, `:8080`), fully bootstrapped on first boot;
+idp-register runs on the **host** at `:8081`.
+
+## Why idp-register runs on the host, not in compose
+
+The OIDC issuer must look identical to the browser *and* to idp-register's
+server-side discovery/token calls. With Rauthy published at `localhost:8080` and
+idp-register on the host, both see `http://localhost:8080` — no DNS/issuer
+mismatch. (Putting idp-register in the same compose network would make it resolve
+`localhost` to itself; that needs `/etc/hosts` aliasing, which we avoid here.)
+
+## What gets bootstrapped
+
+| Thing | Value |
+|---|---|
+| Admin login | `admin@localhost` / `TestAdmin1234!` |
+| OIDC client | `idp-register` (redirect `http://localhost:8081/auth/callback`) |
+| Provisioning API key | `idp-register` (Users: read/create/update) |
+
+All secrets are throwaway test values.
+
+## Steps
+
+```sh
+# 1. Start Rauthy (first boot bootstraps the admin, API key, and OIDC client)
+docker compose -f deploy/dev/docker-compose.yml up -d
+docker compose -f deploy/dev/docker-compose.yml logs -f rauthy   # wait for "listening"
+
+# 2. Build the SPA and run idp-register on the host at :8081
+pnpm --filter idp-register-web build
+set -a; source deploy/dev/idp-register.env; set +a
+go run ./cmd/server
+```
+
+Then:
+
+- **Public form** — http://localhost:8081/
+- **Admin** — http://localhost:8081/login → "登录" → Rauthy login
+  (`admin@localhost` / `TestAdmin1234!`). idp-register authorizes this account via
+  `OIDC_ADMIN_EMAILS`.
+- **Provisioning test** — mint an invite code in the admin UI, submit the public
+  form with it; idp-register calls the Rauthy API to create the user. Verify in
+  Rauthy's own admin UI at http://localhost:8080/auth/v1/admin.
+
+## Reset
+
+```sh
+docker compose -f deploy/dev/docker-compose.yml down -v   # wipes the Rauthy DB
+rm -f idp-register-dev.db                                 # wipes idp-register's DB
+```
+
+## Verified (Rauthy 0.35.2, arm64 macOS / Docker linux/arm64)
+
+Booted clean: image is multi-arch (no arch issue on Apple Silicon), `clients.json`
+bootstrapped ("Migrated 1 clients"), API key returns 200 on `/auth/v1/users`, and
+idp-register completes OIDC discovery + `/auth/login` 302-redirects to Rauthy.
+
+## Gotchas found on first boot (read before migrating to another machine)
+
+1. **`config.toml` is mandatory.** Rauthy 0.35.x **panics** (`Cannot read config file
+   from ./config.toml`) if the file is absent — *even when every value is set via env
+   vars*. We mount an effectively-empty `config.toml`; env vars supply the real config.
+2. **Issuer has a TRAILING SLASH.** Rauthy's `iss` is `http://localhost:8080/auth/v1/`.
+   `coreos/go-oidc` requires an exact match, so `OIDC_ISSUER` **must** end with `/`.
+   (`RAUTHY_API_BASE` is fine without it — the Go config trims trailing slashes.)
+3. **Quote env values with spaces.** `OIDC_SCOPES="openid email profile groups"` must be
+   quoted or `set -a; source ...` runs `email` as a command.
+4. **First-login password change.** Rauthy logs *"a bootstrap password has been given …
+   Please change it immediately"*; it may prompt a password change on first Rauthy login.
+   That's expected — change it once in Rauthy's UI, then idp-register login works.
+5. **Architecture was NOT the problem here** — but if a future Rauthy tag is single-arch,
+   add `platform: linux/amd64` under the `rauthy` service to run it via emulation.
+
+## Two-process dev (frontend HMR + separate backend)
+
+The steps above are **single-origin** (build the SPA, Go serves it + API on `:8081`).
+For a split with frontend hot-reload, run two processes. The browser now lives on the
+Vite port (`:5173`), so that becomes the public origin — `:5173/auth/callback` is already
+registered in `bootstrap/clients.json`.
+
+```sh
+# Terminal 1 — Go backend on :8081, but public origin = the Vite port :5173
+set -a; source deploy/dev/idp-register.env; set +a
+export ORIGIN=http://localhost:5173
+export OIDC_REDIRECT_URI=http://localhost:5173/auth/callback
+go run ./cmd/server
+
+# Terminal 2 — Vite dev server on :5173, proxying /api + /auth to the backend
+BACKEND_ORIGIN=http://localhost:8081 pnpm --filter idp-register-web dev
+```
+
+Open **http://localhost:5173/**. Vite proxies `/api` and `/auth` to `:8081`; cookies are
+host-scoped so they work across ports.
+
+Caveats:
+- **`vite preview` will NOT work as the frontend here** — its server doesn't proxy
+  `/api`/`/auth` (SvelteKit's preview middleware intercepts them). To exercise the
+  *production* build, use the single-origin embedded mode above (that IS the prod artifact).
+- **`go run` leaves a zombie.** It spawns the compiled server as a child; killing `go run`
+  (or closing the terminal) can leave the server bound to `:8081`, so the next start
+  silently fails to bind and you hit the stale one. Stop it with Ctrl-C in the foreground,
+  or `lsof -ti tcp:8081 | xargs kill`. (`go build -o /tmp/srv ./cmd/server && /tmp/srv`
+  avoids the indirection.)

@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Minimal Rauthy IdP for local testing of idp-register. Everything idp-register
+# needs is bootstrapped on first boot from an empty DB:
+#   - admin user  admin@localhost / password below (BOOTSTRAP_ADMIN_*)
+#   - provisioning API key  "idp-register"          (BOOTSTRAP_API_KEY*)
+#   - OIDC client            "idp-register"          (./bootstrap/clients.json)
+#
+# Rauthy runs HTTP-only on :8080 so coreos/go-oidc discovery works without TLS.
+# Run idp-register itself on the HOST (port :8081) so the OIDC issuer
+# (http://localhost:8080) is identical from both the browser and idp-register —
+# see README.md. All secrets here are throwaway test values; never reuse them.
+services:
+  rauthy:
+    image: ghcr.io/sebadob/rauthy:0.35.2
+    container_name: rauthy-dev
+    ports:
+      - "8080:8080"
+    environment:
+      # --- server: HTTP only, public URL must match the OIDC issuer origin ---
+      LISTEN_SCHEME: http
+      LISTEN_ADDRESS: 0.0.0.0
+      LISTEN_PORT_HTTP: 8080
+      PUB_URL: localhost:8080
+      INSECURE_COOKIE: "true"
+      RP_ID: localhost
+      RP_ORIGIN: http://localhost:8080
+
+      # --- embedded Hiqlite (single node) ---
+      HQL_NODE_ID: 1
+      HQL_NODES: "1 localhost:8100 localhost:8200"
+      HQL_SECRET_RAFT: 1427209662dbb7ae5a6f1ba1699be92d
+      HQL_SECRET_API: bce56762c039d798b5be0269e3c0423f
+
+      # --- encryption keys (format: keyId/base64(32 bytes)) ---
+      ENC_KEYS: 5fdc10c5/wmGr3cB3Fnm1m12MF7HnJC8eBAsTGRQ0AAMkFgKzQgU=
+      ENC_KEY_ACTIVE: 5fdc10c5
+
+      # --- bootstrap admin (plaintext password: TEST ONLY) ---
+      BOOTSTRAP_ADMIN_EMAIL: admin@localhost
+      BOOTSTRAP_ADMIN_PASSWORD_PLAIN: "TestAdmin1234!"
+
+      # --- bootstrap provisioning API key ("idp-register") ---
+      # JSON: {"name":"idp-register","exp":2000000000,"access":[
+      #        {"group":"Users","access_rights":["read","create","update"]},
+      #        {"group":"Groups","access_rights":["read"]}]}
+      # Groups:read lets idp-register fetch the group catalog for profile editing (ADR-0012).
+      BOOTSTRAP_API_KEY: eyJuYW1lIjoiaWRwLXJlZ2lzdGVyIiwiZXhwIjoyMDAwMDAwMDAwLCJhY2Nlc3MiOlt7Imdyb3VwIjoiVXNlcnMiLCJhY2Nlc3NfcmlnaHRzIjpbInJlYWQiLCJjcmVhdGUiLCJ1cGRhdGUiXX0seyJncm91cCI6Ikdyb3VwcyIsImFjY2Vzc19yaWdodHMiOlsicmVhZCJdfV19
+      BOOTSTRAP_API_KEY_SECRET: 75d205eb93bafde5982690d31d35c203d57a7b5c1273d3d9b78879d47b0ddf547da025085dbcd7e4
+
+      # --- bootstrap OIDC client(s) from ./bootstrap/clients.json ---
+      BOOTSTRAP_DIR: /app/bootstrap
+    volumes:
+      # Rauthy 0.35.x requires /app/config.toml to exist even with env config.
+      - ./config.toml:/app/config.toml:ro
+      - ./bootstrap:/app/bootstrap:ro
+      - rauthy-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  rauthy-data:

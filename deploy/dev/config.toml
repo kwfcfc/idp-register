@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Rauthy 0.35.x panics on startup if /app/config.toml does not exist, even when
+# the entire configuration is supplied via environment variables. This file
+# exists to satisfy that requirement; all real values are set as env vars in
+# docker-compose.yml (env overrides/fills the config).
