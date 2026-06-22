@@ -18,6 +18,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"forgejo.goba.ip-dynamic.org/gobro/idp-register/internal/provisioner"
@@ -160,7 +161,7 @@ func (c *Client) CreateUser(ctx context.Context, in provisioner.NewUser) (string
 	}
 	var u rauthyUser
 	status, err := c.do(ctx, http.MethodPost, "/users", body, &u)
-	if status == http.StatusConflict {
+	if isUserExistsError(status, err) {
 		return "", provisioner.ErrUserExists
 	}
 	if err != nil {
@@ -173,6 +174,17 @@ func (c *Client) CreateUser(ctx context.Context, in provisioner.NewUser) (string
 		}
 	}
 	return u.ID, nil
+}
+
+func isUserExistsError(status int, err error) bool {
+	if status == http.StatusConflict {
+		return true
+	}
+	if status != http.StatusNotAcceptable || err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "UNIQUE") && strings.Contains(msg, "email")
 }
 
 func (c *Client) setPreferredUsername(ctx context.Context, userID, username string) error {

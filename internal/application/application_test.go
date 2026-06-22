@@ -312,6 +312,7 @@ func TestM3InvalidInvitesFallBackToPendingWithoutConsumingUses(t *testing.T) {
 func TestM3ProvisioningFailureCanRetryOrRejectHeldInviteReservation(t *testing.T) {
 	h := newAppHarness(t)
 	h.createProfile(t, "matrix", []string{"svc:matrix:user"}, true)
+	h.createProfile(t, "forgejo", []string{"svc:forgejo:user"}, true)
 	uses := int64(2)
 	retryToken := h.mintToken(t, "retry-code", "matrix", &uses, nil, nil)
 
@@ -334,7 +335,7 @@ func TestM3ProvisioningFailureCanRetryOrRejectHeldInviteReservation(t *testing.T
 	assertTokenCounters(t, h, retryToken.ID, 1, 0)
 
 	h.prov.failCreate = false
-	if err := h.apps.Approve(h.ctx, retryApp.ID, "matrix", "retry", h.actor); err != nil {
+	if err := h.apps.Approve(h.ctx, retryApp.ID, "forgejo", "retry", h.actor); err != nil {
 		t.Fatalf("retry approve: %v", err)
 	}
 	retryApp, err = h.apps.Get(h.ctx, retryApp.ID)
@@ -343,6 +344,12 @@ func TestM3ProvisioningFailureCanRetryOrRejectHeldInviteReservation(t *testing.T
 	}
 	if retryApp.Status != store.StatusApproved {
 		t.Fatalf("retry did not approve application: %+v", retryApp)
+	}
+	if retryApp.ApprovedProfileID == nil || *retryApp.ApprovedProfileID != "matrix" {
+		t.Fatalf("invite retry changed approved profile: %+v", retryApp.ApprovedProfileID)
+	}
+	if want := []string{"svc:matrix:user"}; !reflect.DeepEqual(want, h.prov.created[0].Groups) {
+		t.Fatalf("invite retry should keep token-bound profile groups: got %+v want %+v", h.prov.created[0].Groups, want)
 	}
 	assertTokenCounters(t, h, retryToken.ID, 0, 1)
 

@@ -87,6 +87,34 @@ user clicks activation link, sets password/passkey (= email verified + account a
 
 Happy path = **one** user-facing email (the IdP activation mail).
 
+### Provisioning failure semantics
+
+`provisioning_failed` means this service did not successfully create the target
+IdP user. It is a recovery state for operator-visible IdP/API problems, not a
+second applicant-facing review loop.
+
+- Backend/API errors between this service and the target IdP (bad API key,
+  missing create/group rights, network outage, target IdP unavailable, invalid
+  target group/profile mapping) are retryable. Manual applications keep their
+  application record and may be retried with a corrected profile. Invite-backed
+  applications keep the original invite-bound profile; retry only re-attempts
+  the same grant.
+- Target-IdP registration conflicts are not retried as a different grant. If the
+  email already exists in Rauthy, or an existing user is asking for a different
+  profile / elevation, the application should be rejected here and handled in
+  the target IdP's own user-management UI.
+- Rauthy email delivery is target-IdP responsibility. For Rauthy, `POST /users`
+  creates the user and enqueues/sends the first-password email; if mail delivery
+  later fails, this service still treats provisioning as successful because the
+  target IdP user exists. Rauthy administrators handle SMTP failures, bounces,
+  and re-sending password/setup links.
+- Unreachable applicant mailboxes and unused activation links are not reconciled
+  back into invite counters. Rauthy's first-password magic link has its own
+  lifetime (`magic_link_pwd_first`, default 4320 minutes in Rauthy 0.35.x), and
+  Rauthy's magic-link cleanup deletes users that never set a password/passkey
+  after the unused first-password link expires. In this service, the invite use
+  remains `completed` once target-IdP creation succeeds.
+
 ## Invite-code model (Synapse-aligned)
 
 Plaintext code, addressed by the code string. Semantics mirror Synapse registration tokens:

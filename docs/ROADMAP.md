@@ -74,11 +74,14 @@ Verified flow:
 Deferred from ADR-0012. Needs union-of-groups provisioning and storing multiple approved
 profiles per application; `selectionMode` becomes admin-configurable (single/multi).
 
-### M5 — Provisioning recovery / cleanup ⬜
+### M5 — Provisioning recovery / cleanup ✅
 Invite counters now advance on provisioning success (`pending--`, `completed++`) instead
 of waiting for a separate activation confirmation. Admins can retry a failed provisioning
 by approving again, or reject the application to release any held invite reservation.
-Still needed: make this recovery/cleanup path explicit in tests and UI copy.
+The recovery/cleanup path is covered in `internal/application/application_test.go`: retry
+approval keeps the invite reservation until success, while rejection releases it. The admin
+UI now labels failed provisioning as retryable and explains when rejecting releases an
+invite-code pending reservation.
 
 ### M6 — Schema discipline & database policy ✅
 Document the fresh-deployment schema and database support policy without promising automatic

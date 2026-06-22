@@ -168,8 +168,19 @@ func (s *Service) Get(ctx context.Context, id string) (*store.Application, error
 }
 
 // Approve claims a pending/failed application and provisions it under the given
-// profile. Groups are resolved from the profile server-side.
+// profile. Groups are resolved from the profile server-side. Token-backed retry
+// approvals keep the original token-bound profile; an admin cannot turn a failed
+// invite provisioning into a different permission grant.
 func (s *Service) Approve(ctx context.Context, id, profileID, note string, actor store.AdminUser) error {
+	appBeforeClaim, err := s.store.GetApplication(ctx, id)
+	if err != nil {
+		return err
+	}
+	if appBeforeClaim.Status == store.StatusProvisioningFailed &&
+		appBeforeClaim.TokenID != nil &&
+		appBeforeClaim.ApprovedProfileID != nil {
+		profileID = *appBeforeClaim.ApprovedProfileID
+	}
 	if profileID == "" {
 		return errors.New("a permission profile is required to approve")
 	}

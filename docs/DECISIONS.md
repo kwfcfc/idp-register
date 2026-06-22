@@ -246,3 +246,34 @@ fixing the cause, or rejects the application to release the held invite use.
 **Consequences.** The review UI stays simpler and matches the no-service-email constraint.
 Applicants who made a mistake can submit again; the service does not need to manage an
 outbound correspondence loop.
+
+---
+
+## ADR-0014 — Target-IdP activation remains outside the broker state machine
+**Status:** accepted
+
+**Context.** Rauthy has two distinct user-creation paths. Its public registration
+endpoint hides duplicate-email details for anti-enumeration, while the admin/API
+`POST /users` path used by this broker returns normal API errors for create-time
+problems. Rauthy creates the user first, then sends or queues the first-password
+mail. SMTP delivery failures, bounces, and unused activation links are target-IdP
+operational concerns.
+
+**Decision.** Treat provisioning success as "the target IdP user was created",
+not "the applicant completed activation". If Rauthy returns a create-time error
+such as duplicate email, the application remains `provisioning_failed` for admin
+resolution and should normally be rejected if the account already exists. If
+Rauthy creates the user but its mail delivery fails later, this broker keeps the
+application `approved` and the invite use `completed`; Rauthy administrators
+repair SMTP or resend/reset credentials from Rauthy.
+
+Invite-backed retries keep the original token-bound profile. Manual-review
+retries may change the profile to correct an operator mistake, but existing-user
+profile changes or elevation requests are rejected here and handled in the target
+IdP's user-management workflow.
+
+**Consequences.** The broker does not need to poll Rauthy for activation state or
+reconcile expired first-password links into invite counters. This keeps the first
+stable baseline simple and preserves the "one user-facing email" invariant. A
+future reconciliation feature would require an explicit new ADR because it would
+change invite accounting semantics after successful target-IdP creation.

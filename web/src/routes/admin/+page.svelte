@@ -22,7 +22,7 @@
   <StatCard label="待审核申请" value={data.stats.pending} note="需要管理员作出决定" icon="▤" />
   <StatCard label="已批准" value={data.stats.approved} note="已创建下游账户" icon="✓" />
   <StatCard label="有效邀请码" value={data.stats.activeInvites} note="未过期且仍有可用次数" icon="◇" />
-  <StatCard label="创建失败" value={data.stats.failed} note="需要检查目标 IdP" icon="!" />
+  <StatCard label="创建失败" value={data.stats.failed} note="修正后可重试，或拒绝释放占用" icon="!" />
 </div>
 
 <div class="card" style="margin-top: 18px">

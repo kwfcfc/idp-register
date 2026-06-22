@@ -9,10 +9,15 @@
   // `a` tracks data.application reactively so it updates after invalidateAll().
   const a = $derived(data.application);
   const decidable = $derived(a.status === 'pending' || a.status === 'provisioning_failed');
+  const failedProvisioning = $derived(a.status === 'provisioning_failed');
+  const failedInviteProvisioning = $derived(failedProvisioning && Boolean(a.tokenId));
 
   let profileId = $state('');
   let approveNote = $state('');
   let rejectNote = $state('');
+  const effectiveProfileId = $derived(
+    failedInviteProvisioning ? (a.approvedProfileId ?? profileId) : profileId
+  );
 
   let busy = $state(false);
   let error = $state('');
@@ -40,12 +45,12 @@
 
   const approve = () =>
     run(async () => {
-      if (!profileId) throw new ApiError(400, '请选择权限模板。');
+      if (!effectiveProfileId) throw new ApiError(400, '请选择权限模板。');
       await apiSend('POST', `/api/admin/applications/${a.id}/approve`, {
-        profileId,
+        profileId: effectiveProfileId,
         note: approveNote.trim()
       });
-    }, '已批准并触发目标 IdP 用户创建。');
+    }, failedProvisioning ? '已重新触发目标 IdP 用户创建。' : '已批准并触发目标 IdP 用户创建。');
 
   const reject = () =>
     run(async () => {
@@ -53,7 +58,7 @@
         status: 'rejected',
         note: rejectNote.trim()
       });
-    }, '已拒绝该申请。');
+    }, failedInviteProvisioning ? '已拒绝该申请，并释放邀请码占用。' : '已拒绝该申请。');
 </script>
 
 <svelte:head><title>{a.username} · 注册申请</title></svelte:head>
@@ -70,6 +75,16 @@
 {#if success}<div class="alert success">{success}</div>{/if}
 {#if error}<div class="alert error">{error}</div>{/if}
 {#if a.provisioningError}<div class="alert error"><strong>上次创建失败：</strong>{a.provisioningError}</div>{/if}
+{#if failedProvisioning}
+  <div class="alert warning">
+    <strong>可以重试创建。</strong>
+    {#if failedInviteProvisioning}
+      修正目标 IdP 后再次批准会重新创建用户；邀请码绑定的权限模板不可变。这次邀请码使用仍处于 pending；创建成功后会转为 completed，拒绝申请会释放这次占用。
+    {:else}
+      修正目标 IdP 或权限模板后再次批准会重新创建用户。此申请没有邀请码占用，拒绝只会结束审核流程。
+    {/if}
+  </div>
+{/if}
 
 <div class="detail-grid">
   <div style="display:grid;gap:18px">
@@ -111,24 +126,34 @@
       {#if decidable}
         <div class="field">
           <label for="profileId">批准后的权限模板</label>
-          <select id="profileId" bind:value={profileId} required>
+          <select id="profileId" bind:value={profileId} required disabled={failedInviteProvisioning}>
             {#each data.profiles as profile (profile.id)}<option value={profile.id}>{profile.label}</option>{/each}
           </select>
-          <div class="help">审批时由服务端展开为目标 IdP groups。</div>
+          <div class="help">
+            {failedInviteProvisioning
+              ? '邀请码申请重试时继续使用原邀请码绑定的模板。'
+              : failedProvisioning
+                ? '重试时由服务端按当前选择的模板展开为目标 IdP groups。'
+                : '审批时由服务端展开为目标 IdP groups。'}
+          </div>
         </div>
         <div class="field" style="margin-top:14px">
           <label for="approve-note">审核备注</label>
           <textarea id="approve-note" bind:value={approveNote} placeholder="说明批准依据或需要留存的信息"></textarea>
         </div>
         <button class="button primary" style="width:100%;margin-top:14px" disabled={busy} onclick={approve}>
-          批准并创建用户
+          {failedProvisioning ? '重试创建用户' : '批准并创建用户'}
         </button>
 
         <hr style="border:0;border-top:1px solid var(--line);margin:22px 0" />
 
         <div class="field">
           <label for="reject-note">拒绝原因</label>
-          <textarea id="reject-note" bind:value={rejectNote} placeholder="内部记录"></textarea>
+          <textarea
+            id="reject-note"
+            bind:value={rejectNote}
+            placeholder={failedInviteProvisioning ? '内部记录；拒绝会释放邀请码占用' : '内部记录'}
+          ></textarea>
         </div>
         <button
           class="button danger"

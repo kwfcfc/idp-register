@@ -108,6 +108,7 @@ textarea { min-height: 118px; resize: vertical; line-height: 1.55; }
 .alert { padding: 12px 14px; border-radius: 10px; font-size: 12px; line-height: 1.55; margin-bottom: 16px; }
 .alert.success { background: var(--green-soft); color: #245f43; border: 1px solid #c9dfd1; }
 .alert.error { background: var(--red-soft); color: #8d3434; border: 1px solid #efcccc; }
+.alert.warning { background: var(--amber-soft); color: #7a4d0b; border: 1px solid #efdba8; }
 .code-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; background: #142d23; color: #eff7f2; border-radius: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
 .code-box code { font-size: 13px; }
 
