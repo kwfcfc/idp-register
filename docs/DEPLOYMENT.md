@@ -26,6 +26,21 @@ The multi-stage `Dockerfile` already does exactly this (Node → Go → distrole
 **Pros:** one artifact; same-origin so the existing model works as-is — `SameSite=Lax`
 session cookie + `Origin`-based CSRF check (`internal/web` `checkCSRF`), **zero CORS**.
 
+### Production Compose Shape
+
+The intended near-term production deployment is:
+
+1. Build and publish the all-in-one OCI image to the operator's registry.
+2. Copy `deploy/prod/.env.example` to `deploy/prod/.env` on the host and fill in the
+   production Rauthy, OIDC, claim, cookie, and database values.
+3. Run `deploy/prod/compose.yml`, which pulls the image and defaults to SQLite. Operators
+   who want PostgreSQL uncomment `DATABASE_URL` / PostgreSQL credentials and start with
+   the `postgres` profile.
+
+This keeps frontend/backend separation out of the first production deployment. The browser
+sees one origin, the Go service owns `/`, `/api`, and `/auth`, and the reverse proxy only
+needs to forward that origin to the app container.
+
 ## Mode 2 — Go API only
 
 The same binary, but it does **not** serve the SPA — the `/` catch-all is disabled and

@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Production all-in-one deployment.
+#
+# Default: SQLite, with a persistent volume mounted at /data.
+# Optional: enable the bundled PostgreSQL service with:
+#
+#   docker compose --profile postgres up -d
+#
+# When using PostgreSQL, set DATABASE_URL in .env to point at the postgres
+# service. Without DATABASE_URL the app uses SQLITE_PATH.
+services:
+  app:
+    image: ${IDP_REGISTER_IMAGE:?set IDP_REGISTER_IMAGE in .env}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ADDR: ":8080"
+      SQLITE_PATH: ${SQLITE_PATH:-/data/idp-register.db}
+    ports:
+      - "${IDP_REGISTER_BIND:-127.0.0.1:8080}:8080"
+    volumes:
+      - app-data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    profiles:
+      - postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-idp_register}
+      POSTGRES_USER: ${POSTGRES_USER:-idp_register}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-idp_register} -d ${POSTGRES_DB:-idp_register}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  postgres-data:
