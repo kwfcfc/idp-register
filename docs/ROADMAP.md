@@ -110,3 +110,19 @@ three ways. Mode 1 (embedded) is done; this milestone adds:
 ### M9 — CI/CD with Crow CI (ADR-0010) 🧊
 Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → multi-arch image.
 The three packagings from M8 become the three build targets. Deferred until the app stabilizes.
+
+### M10 — mdBook documentation site ⬜
+Medium-term documentation target: turn the project docs into a versioned static documentation
+site built with Rust's `mdBook`, published from CI.
+- ⬜ Add an mdBook tree (for example `book/` or `docs/book/`) with `book.toml`, `SUMMARY.md`,
+  and chapters covering introduction, concepts, installation, production Compose deployment,
+  Rauthy/OIDC configuration, database choices, operations, troubleshooting, architecture,
+  and ADR index.
+- ⬜ Keep source-of-truth content in sync with existing repository docs (`README.md`,
+  `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/DATABASE.md`, `docs/DEPLOYMENT.md`,
+  `deploy/prod/README.md`, and `deploy/dev/README.md`) without duplicating stale copies.
+- ⬜ Add local developer commands for `mdbook build` and `mdbook serve`.
+- ⬜ Add a Crow CI docs job that builds the static book artifact after lint/test succeeds.
+- ⬜ Publish the built book to the maintainer's preferred static host: Forgejo Pages if
+  available in the deployment, otherwise Cloudflare Pages.
+- ⬜ Decide the public URL and versioning policy (`stable` docs vs `main`/preview docs).

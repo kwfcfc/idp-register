@@ -277,3 +277,31 @@ reconcile expired first-password links into invite counters. This keeps the firs
 stable baseline simple and preserves the "one user-facing email" invariant. A
 future reconciliation feature would require an explicit new ADR because it would
 change invite accounting semantics after successful target-IdP creation.
+
+---
+
+## ADR-0015 — Publish project documentation as an mdBook site
+**Status:** accepted; implementation deferred
+
+**Context.** The repository now has several operator- and developer-facing documents:
+README, architecture notes, ADRs, database policy, deployment modes, production Compose
+templates, and local Rauthy harness instructions. Plain Markdown files are fine during early
+development, but installation and operations need a browsable, versioned documentation site
+once users deploy the project from published images.
+
+**Decision.** Add a medium-term documentation site built with Rust's **mdBook**. The book
+will cover project introduction, concepts, installation, production Compose deployment,
+Rauthy/OIDC configuration, database choices, operations, troubleshooting, architecture, and
+ADR references. It is documentation only: it does not replace the Svelte application
+frontend and it does not change the all-in-one production deployment.
+
+The docs build becomes part of the future Crow CI workflow after the application lint/test
+steps. CI should publish the generated static book artifact to the maintainer's preferred
+static host: Forgejo Pages if available for the canonical Forgejo instance, otherwise
+Cloudflare Pages. The pipeline should eventually distinguish stable published docs from
+main-branch preview docs.
+
+**Consequences.** Operators get a single browsable install/config/deploy guide, and docs can
+be published from the same CI system as the images. Cost: the repository must avoid stale
+duplicate documentation by either organizing the existing Markdown into the book or making
+clear which files are source-of-truth and which are rendered/curated book chapters.
