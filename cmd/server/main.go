@@ -47,6 +47,16 @@ func run() error {
 	defer st.Close()
 	log.Printf("database ready (driver=%s)", cfg.DBDriver)
 
+	// Provisioning runs synchronously inside a request; a row still in
+	// 'provisioning' after a restart was interrupted and can never leave that
+	// state on its own. Recover it into the normal retry/reject path.
+	if n, err := st.RecoverStaleProvisioning(ctx,
+		"provisioning was interrupted by a service restart; retry or reject"); err != nil {
+		return err
+	} else if n > 0 {
+		log.Printf("recovered %d application(s) stuck in provisioning", n)
+	}
+
 	prov, err := buildProvisioner(cfg)
 	if err != nil {
 		return err

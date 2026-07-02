@@ -134,6 +134,25 @@ func (s *Store) MarkProvisioningFailed(ctx context.Context, id, message string, 
 	return err
 }
 
+// RecoverStaleProvisioning sweeps applications stuck in 'provisioning' into
+// 'provisioning_failed'. Provisioning runs synchronously inside a request, so
+// after a restart any row still in 'provisioning' was interrupted mid-flight
+// and would otherwise be unreachable (neither claimable nor decidable). Moving
+// it to provisioning_failed re-enters the normal retry/reject recovery path;
+// a held invite reservation stays held, exactly as for any other failure.
+// Returns the number of recovered applications.
+func (s *Store) RecoverStaleProvisioning(ctx context.Context, message string) (int64, error) {
+	res, err := s.exec(ctx,
+		`UPDATE applications
+		    SET status = 'provisioning_failed', provisioning_error = ?, updated_at = ?
+		  WHERE status = 'provisioning'`,
+		message, nowMS())
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
+}
+
 // Decide rejects an application. Returns true if a row in a decidable state was
 // updated.
 func (s *Store) Decide(ctx context.Context, id, status, note string, actor AdminUser) (bool, error) {

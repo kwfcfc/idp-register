@@ -126,3 +126,10 @@ site built with Rust's `mdBook`, published from CI.
 - ⬜ Publish the built book to the maintainer's preferred static host: Forgejo Pages if
   available in the deployment, otherwise Cloudflare Pages.
 - ⬜ Decide the public URL and versioning policy (`stable` docs vs `main`/preview docs).
+
+### M11 — Pluggable human-verification providers 🧊
+Per **ADR-0016**, anti-abuse is a challenge, not IP rate limiting. Turnstile is implemented;
+this milestone adds a small provider abstraction (form widget + server verify) so a
+self-hostable proof-of-work verifier (`sebadob/spow` embeddable, or `TecharoHQ/anubis` as an
+edge interstitial documented in deployment) can replace Turnstile. Deferred until someone
+actually needs a Cloudflare-free deployment.

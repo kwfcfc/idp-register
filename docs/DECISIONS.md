@@ -305,3 +305,34 @@ main-branch preview docs.
 be published from the same CI system as the images. Cost: the repository must avoid stale
 duplicate documentation by either organizing the existing Markdown into the book or making
 clear which files are source-of-truth and which are rendered/curated book chapters.
+
+---
+
+## ADR-0016 — Anti-abuse is a human-verification challenge, not IP rate limiting
+**Status:** accepted (supersedes the "rate-limit by IP" intent in ARCHITECTURE.md and the
+"rate-limit" fragment in ADR-0004's consequences)
+
+**Context.** Earlier design text promised application-level IP rate limiting on the public
+form, but it was never implemented. IP-bucket state in the app is awkward: correctness
+depends on trusting `CF-Connecting-IP`/proxy headers, it penalizes shared NATs, and the
+deployment already sits behind Cloudflare/Nginx which can rate-limit at the edge when
+wanted. The actual abuse concerns — bulk junk applications and online guessing of invite
+codes — are equally well countered by a per-submission human-verification cost, and codes
+are additionally bounded by expiry and use caps (ADR-0004).
+
+**Decision.** The public form's anti-abuse mechanism is a **server-verified
+human-verification challenge**, not in-app IP rate limiting. **Cloudflare Turnstile** is
+the implemented provider (secret configured server-side; verification skipped only when
+unset — production should always set it). The design keeps room for **self-hostable
+proof-of-work alternatives** behind the same seam (the `captcha_provider` field already
+records which verifier passed): `sebadob/spow` as an embeddable PoW widget verified in Go,
+or `TecharoHQ/anubis` as a deployment-level interstitial proxy in front of the app.
+Edge rate limiting in Cloudflare/Nginx remains available as defense in depth, but it is a
+deployment concern and not part of this codebase.
+
+**Consequences.** No IP-tracking state or proxy-header trust logic in the app; the
+anti-enumeration property of uniform responses is unchanged. Invite-code guessing is
+mitigated by challenge cost + expiry + use caps rather than request counting. Cost: an
+unset challenge secret means an unprotected form, so deployment docs must treat the
+challenge as effectively required; adding a PoW provider is future work and will need a
+small provider abstraction on both the form and the verify path.

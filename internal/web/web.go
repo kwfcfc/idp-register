@@ -13,6 +13,7 @@ import (
 	"io/fs"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -201,14 +202,18 @@ func (s *Server) admin(h adminHandler) http.HandlerFunc {
 }
 
 // checkCSRF enforces a same-origin check on state-changing requests, since the
-// session cookie is SameSite=Lax. Returns false (and writes 403) on mismatch.
+// session cookie is SameSite=Lax. The request origin must equal the configured
+// origin exactly — a prefix match would accept e.g. https://example.com.evil.com.
+// Returns false (and writes 403) on mismatch.
 func (s *Server) checkCSRF(w http.ResponseWriter, r *http.Request) bool {
 	origin := r.Header.Get("Origin")
 	if origin == "" {
-		// Fall back to Referer when Origin is absent.
-		origin = r.Header.Get("Referer")
+		// Fall back to Referer when Origin is absent, reduced to its origin.
+		if ref, err := url.Parse(r.Header.Get("Referer")); err == nil && ref.Scheme != "" && ref.Host != "" {
+			origin = ref.Scheme + "://" + ref.Host
+		}
 	}
-	if origin == "" || !strings.HasPrefix(origin, s.cfg.Origin) {
+	if !strings.EqualFold(origin, s.cfg.Origin) {
 		writeJSON(w, http.StatusForbidden, map[string]string{"error": "cross-origin request blocked"})
 		return false
 	}
@@ -527,17 +532,19 @@ func clientIP(r *http.Request, trustCF bool) string {
 	return host
 }
 
-// verifyTurnstile validates a Cloudflare Turnstile token server-side.
+// verifyTurnstile validates a Cloudflare Turnstile token server-side. The form
+// body is built with url.Values: the token is user input, so raw concatenation
+// would let a crafted token inject extra parameters (e.g. its own secret).
 func (s *Server) verifyTurnstile(ctx context.Context, token, ip string) bool {
 	if token == "" {
 		return false
 	}
-	form := "secret=" + s.cfg.TurnstileSecret + "&response=" + token
+	form := url.Values{"secret": {s.cfg.TurnstileSecret}, "response": {token}}
 	if ip != "" {
-		form += "&remoteip=" + ip
+		form.Set("remoteip", ip)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		"https://challenges.cloudflare.com/turnstile/v0/siteverify", strings.NewReader(form))
+		"https://challenges.cloudflare.com/turnstile/v0/siteverify", strings.NewReader(form.Encode()))
 	if err != nil {
 		return false
 	}

@@ -179,6 +179,50 @@ func TestExpiredTokenRejected(t *testing.T) {
 	}
 }
 
+// TestRecoverStaleProvisioning verifies the startup sweep: interrupted
+// 'provisioning' rows become retryable/rejectable provisioning_failed, and
+// applications in other states are untouched.
+func TestRecoverStaleProvisioning(t *testing.T) {
+	ctx := context.Background()
+	s := openTestStore(t)
+
+	stuck := &Application{ID: uuid.NewString(), Email: "stuck@example.test", Status: StatusProvisioning}
+	if err := s.CreateApplication(ctx, stuck, "stuck@example.test", ""); err != nil {
+		t.Fatalf("create stuck: %v", err)
+	}
+	pending := &Application{ID: uuid.NewString(), Email: "pending@example.test", Status: StatusPending}
+	if err := s.CreateApplication(ctx, pending, "pending@example.test", ""); err != nil {
+		t.Fatalf("create pending: %v", err)
+	}
+
+	n, err := s.RecoverStaleProvisioning(ctx, "interrupted by restart")
+	if err != nil {
+		t.Fatalf("recover: %v", err)
+	}
+	if n != 1 {
+		t.Fatalf("want 1 recovered application, got %d", n)
+	}
+
+	got, err := s.GetApplication(ctx, stuck.ID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Status != StatusProvisioningFailed {
+		t.Fatalf("want provisioning_failed, got %s", got.Status)
+	}
+	if got.ProvisioningError == nil || *got.ProvisioningError != "interrupted by restart" {
+		t.Fatalf("provisioning_error not recorded: %+v", got.ProvisioningError)
+	}
+	// The recovered row is decidable again (reject path works).
+	if ok, err := s.Decide(ctx, stuck.ID, StatusRejected, "", AdminUser{Sub: "a"}); err != nil || !ok {
+		t.Fatalf("recovered application should be decidable: ok=%v err=%v", ok, err)
+	}
+
+	if got, _ := s.GetApplication(ctx, pending.ID); got.Status != StatusPending {
+		t.Fatalf("pending application must not be touched, got %s", got.Status)
+	}
+}
+
 func TestCreateApplicationPersistsApprovedProfile(t *testing.T) {
 	ctx := context.Background()
 	s := openTestStore(t)

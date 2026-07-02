@@ -99,6 +99,12 @@ func (a *Authenticator) CompleteLogin(ctx context.Context, w http.ResponseWriter
 	if err != nil {
 		return nil, errors.New("missing PKCE verifier cookie")
 	}
+	wantNonce, err := r.Cookie(nonceCookie)
+	if err != nil {
+		// The nonce must be present and match — skipping the check when the
+		// cookie is absent would let a replayed ID token through.
+		return nil, errors.New("missing nonce cookie")
+	}
 	a.clearTempCookies(w)
 
 	oauth2Token, err := a.oauth.Exchange(ctx, r.URL.Query().Get("code"), oauth2.VerifierOption(verifier.Value))
@@ -113,7 +119,7 @@ func (a *Authenticator) CompleteLogin(ctx context.Context, w http.ResponseWriter
 	if err != nil {
 		return nil, fmt.Errorf("verify id_token: %w", err)
 	}
-	if wantNonce, err := r.Cookie(nonceCookie); err == nil && idToken.Nonce != wantNonce.Value {
+	if idToken.Nonce != wantNonce.Value {
 		return nil, errors.New("nonce mismatch")
 	}
 

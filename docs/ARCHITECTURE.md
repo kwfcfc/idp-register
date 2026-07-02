@@ -108,6 +108,11 @@ second applicant-facing review loop.
   later fails, this service still treats provisioning as successful because the
   target IdP user exists. Rauthy administrators handle SMTP failures, bounces,
   and re-sending password/setup links.
+- Provisioning runs synchronously inside the request; an application still in
+  `provisioning` after a restart was interrupted mid-flight. On startup the
+  service sweeps such rows into `provisioning_failed` so they re-enter the
+  normal retry/reject path (a held invite reservation stays held, as for any
+  other failure).
 - Unreachable applicant mailboxes and unused activation links are not reconciled
   back into invite counters. Rauthy's first-password magic link has its own
   lifetime (`magic_link_pwd_first`, default 4320 minutes in Rauthy 0.35.x), and
@@ -175,7 +180,13 @@ type Provisioner interface {
 
 ## Anti-abuse & security
 
-- **Cloudflare Turnstile** at the form; server-side verification in Go. Rate-limit by IP.
+- Public-form abuse is countered by a **server-verified human-verification challenge**,
+  not by application-level IP rate limiting (ADR-0016). **Cloudflare Turnstile** is the
+  implemented provider; self-hostable proof-of-work verifiers (e.g. `sebadob/spow` as an
+  embeddable widget, or `TecharoHQ/anubis` as an edge interstitial in front of the app)
+  are the planned/possible alternatives. Production deployments should always configure a
+  challenge — with it unset, verification is skipped. Edge rate limiting (Cloudflare,
+  Nginx) remains available as defense in depth but is a deployment concern, not app code.
 - **Account enumeration**: identical form responses regardless of email/code existence;
   differentiate only via email content.
 - Public form cannot set IdP groups (only `permission_profiles`).

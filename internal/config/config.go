@@ -85,6 +85,9 @@ func Load() (*Config, error) {
 	if c.Origin, err = required("ORIGIN"); err != nil {
 		return nil, err
 	}
+	// A browser Origin header never has a trailing slash; normalize the config
+	// so the CSRF exact-match comparison cannot fail on one.
+	c.Origin = strings.TrimRight(c.Origin, "/")
 
 	// Database: prefer DATABASE_URL (postgres); else SQLITE_PATH.
 	if dsn := strings.TrimSpace(os.Getenv("DATABASE_URL")); dsn != "" {
