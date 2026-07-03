@@ -1,5 +1,7 @@
+# tools/cli (ACP agents + editor LSP servers) is deliberately NOT a workspace
+# member: it keeps its own lockfile so local tooling updates never touch the
+# root pnpm-lock.yaml that release image builds verify with --frozen-lockfile.
 packages:
   - web
-  - tools/cli
 allowBuilds:
   esbuild: true

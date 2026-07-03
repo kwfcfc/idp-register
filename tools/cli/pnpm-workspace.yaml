@@ -1,0 +1,5 @@
+# Marks tools/cli as its own workspace root so pnpm stops walking up to the
+# repo root: this project is local dev tooling (ACP agents, LSP servers) with
+# its own lockfile, kept out of the root lockfile used by release image builds.
+packages:
+  - "."

@@ -8,7 +8,7 @@
         "dev": "pnpm --filter idp-register-web dev",
         "build": "pnpm --filter idp-register-web build",
         "check": "pnpm --filter idp-register-web check",
-        "update:acp": "pnpm --filter tool-cli up --latest @agentclientprotocol/claude-agent-acp @agentclientprotocol/codex-acp"
+        "update:acp": "pnpm -C tools/cli up --latest @agentclientprotocol/claude-agent-acp @agentclientprotocol/codex-acp"
     },
     "engines": {
         "node": ">=24"
