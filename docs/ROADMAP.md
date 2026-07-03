@@ -94,9 +94,15 @@ old-database upgrades or SQLite↔PostgreSQL conversion.
 - 🧊 Automatic old-database upgrades are deferred until a future release introduces a
   breaking schema change that actually needs one.
 
-### M7 — PostgreSQL test coverage ⬜
-Run the store suite against PostgreSQL (testcontainers) alongside SQLite, to lock the
-dual-DB invariant.
+### M7 — PostgreSQL test coverage ✅
+Run the store suite against PostgreSQL alongside SQLite, to lock the dual-DB invariant.
+- ✅ Every store test runs per-engine via `forEachStore`: SQLite always, PostgreSQL when
+  `TEST_POSTGRES_DSN` points at a disposable database (schema is dropped/recreated per
+  test). Chosen over testcontainers to keep the module dependency-free — locally it is one
+  `docker run postgres:16-alpine` (see the comment in `internal/store/store_test.go`); in
+  CI it maps to a service container.
+- ✅ Guard test: `migrations/*/001_init.sql` must stay SQL-equivalent to the embedded
+  `internal/store/schema_*.sql` (comment/whitespace-insensitive).
 
 ### M8 — Front/back-separated build (ADR-0011 Modes 2 & 3) ⬜
 **The "把 Go 后端和 Svelte 前端分离" task.** Same SPA source + same Go codebase, packaged
