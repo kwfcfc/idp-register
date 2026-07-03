@@ -244,6 +244,15 @@ func (s *Service) provision(ctx context.Context, app *store.Application, groups 
 		Username: app.Username,
 		Groups:   groups,
 	})
+	if err != nil && errors.Is(err, provisioner.ErrUsernameNotSet) && userID != "" {
+		// Partial success: the account exists (and the IdP may already have sent
+		// the activation email), so failing here would strand it — a retry hits
+		// "email already exists" and forces a manual IdP cleanup. Approve with a
+		// warning; the admin can set the username in the IdP later.
+		_ = s.audit.Record(ctx, actor, "application.provision.warn", "application", app.ID,
+			map[string]any{"providerUserId": userID, "message": err.Error()})
+		err = nil
+	}
 	if err != nil {
 		var uid *string
 		if userID != "" {

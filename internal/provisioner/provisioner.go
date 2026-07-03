@@ -15,6 +15,13 @@ import (
 // ErrUserExists indicates the target IdP already has a user with that email.
 var ErrUserExists = errors.New("user already exists in target idp")
 
+// ErrUsernameNotSet reports a partial CreateUser success: the account was
+// created, but the preferred username could not be applied. Implementations
+// return the new user's id alongside an error wrapping this sentinel. Callers
+// must treat the provision as successful (retrying would collide with the
+// already-created account) and surface the message as a warning.
+var ErrUsernameNotSet = errors.New("user created but preferred username not set")
+
 // NewUser is the provider-neutral input for creating a user.
 type NewUser struct {
 	Email    string
@@ -52,7 +59,9 @@ type Provisioner interface {
 	FindUserByEmail(ctx context.Context, email string) (*User, bool, error)
 
 	// CreateUser creates the user and returns its IdP id. Some providers may
-	// send the initial credential setup email as part of creation.
+	// send the initial credential setup email as part of creation. A non-empty
+	// userID with an error wrapping ErrUsernameNotSet means the account exists
+	// and only the username step failed (partial success, not retryable).
 	CreateUser(ctx context.Context, in NewUser) (userID string, err error)
 
 	// InitCredentials triggers credential setup (password/passkey) when the

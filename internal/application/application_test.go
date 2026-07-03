@@ -24,6 +24,7 @@ type fakeProvisioner struct {
 	usersByEmail map[string]*provisioner.User
 	created      []provisioner.NewUser
 	failCreate   bool
+	failUsername bool // create succeeds but the username step fails (partial success)
 	failInit     bool
 }
 
@@ -59,6 +60,9 @@ func (f *fakeProvisioner) CreateUser(_ context.Context, in provisioner.NewUser) 
 		ID:     userID,
 		Email:  in.Email,
 		Groups: append([]string(nil), in.Groups...),
+	}
+	if f.failUsername {
+		return userID, fmt.Errorf("%w: forced username failure", provisioner.ErrUsernameNotSet)
 	}
 	return userID, nil
 }
@@ -377,6 +381,49 @@ func TestM3ProvisioningFailureCanRetryOrRejectHeldInviteReservation(t *testing.T
 		t.Fatalf("want rejected, got %+v", rejectApp)
 	}
 	assertTokenCounters(t, h, rejectToken.ID, 0, 0)
+}
+
+// TestUsernameFailureIsPartialSuccess: when the target IdP creates the account
+// but cannot apply the preferred username, the provision must still be approved
+// (the account exists; a retry would hit "email already exists") with the
+// warning recorded in the audit log.
+func TestUsernameFailureIsPartialSuccess(t *testing.T) {
+	h := newAppHarness(t)
+	h.createProfile(t, "matrix", []string{"svc:matrix:user"}, true)
+	h.prov.failUsername = true
+
+	result, err := h.apps.Submit(h.ctx, SubmitInput{
+		Email:    "partial@example.test",
+		Username: "partial",
+	})
+	if err != nil {
+		t.Fatalf("submit: %v", err)
+	}
+	if err := h.apps.Approve(h.ctx, result.ApplicationID, "matrix", "", h.actor); err != nil {
+		t.Fatalf("approve should tolerate a username-only failure, got: %v", err)
+	}
+
+	app, err := h.apps.Get(h.ctx, result.ApplicationID)
+	if err != nil {
+		t.Fatalf("get application: %v", err)
+	}
+	if app.Status != store.StatusApproved || app.ProviderUserID == nil {
+		t.Fatalf("want approved with provider id, got %+v", app)
+	}
+
+	entries, err := h.store.ListAudit(h.ctx, 50)
+	if err != nil {
+		t.Fatalf("list audit: %v", err)
+	}
+	var warned bool
+	for _, e := range entries {
+		if e.Action == "application.provision.warn" && e.TargetID == app.ID {
+			warned = true
+		}
+	}
+	if !warned {
+		t.Fatalf("partial success must leave an application.provision.warn audit entry, got %+v", entries)
+	}
 }
 
 func assertTokenCounters(t *testing.T, h *appHarness, tokenID string, pending, completed int64) {

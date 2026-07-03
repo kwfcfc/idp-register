@@ -169,8 +169,11 @@ func (c *Client) CreateUser(ctx context.Context, in provisioner.NewUser) (string
 	}
 	if in.Username != "" {
 		if err := c.setPreferredUsername(ctx, u.ID, in.Username); err != nil {
-			// Non-fatal: the account exists; username can be set later.
-			return u.ID, fmt.Errorf("set preferred username: %w", err)
+			// Partial success: the account exists and Rauthy has already sent the
+			// activation email; only the username step failed. Signal it with the
+			// contract sentinel so the caller records a warning instead of failing
+			// the provision (a retry would hit "email already exists").
+			return u.ID, fmt.Errorf("%w: %v", provisioner.ErrUsernameNotSet, err)
 		}
 	}
 	return u.ID, nil
