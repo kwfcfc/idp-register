@@ -91,3 +91,57 @@ value served to the browser at runtime via `GET /api/form`, so the stock
 published image works — no frontend rebuild is needed. The app refuses to start
 with only one of the two set. Leaving both unset disables verification, which is
 not recommended for an internet-facing form (ADR-0016).
+
+## Registration rules & terms of service
+
+Deployments can show their own registration rules and require consent, all at
+runtime — the stock image needs no rebuild:
+
+- `FORM_RULES_TEXT` — rules shown above the form (plain text, line breaks
+  preserved, never rendered as HTML). For multi-line rules prefer
+  `FORM_RULES_FILE` (a path inside the container; bind-mount the file), since
+  `.env` values are single-line. Text and file are mutually exclusive.
+- `FORM_TERMS_URL` — link to your terms-of-service page, shown in the consent
+  checkbox.
+
+If any of these is set, the form renders an "I have read and agree" checkbox
+and the server rejects submissions that do not carry the consent flag. Leaving
+all unset removes both the rules panel and the checkbox.
+
+## Secrets via sops (optional)
+
+Instead of keeping secrets in plaintext `.env`, they can live in a
+[sops](https://github.com/getsops/sops)-encrypted file and be injected only for
+the lifetime of the `docker compose` command:
+
+```sh
+# secrets.enc.yaml — flat KEY: value pairs, encrypted with sops (age/SSH keys):
+#   OIDC_CLIENT_SECRET: ...
+#   RAUTHY_API_KEY_SECRET: ...
+#   TURNSTILE_SITE_KEY: 0x4AAA...      # public, but convenient to keep with its secret
+#   TURNSTILE_SECRET: 0x4AAA...
+
+sops exec-env secrets.enc.yaml 'docker compose up -d'
+```
+
+`sops exec-env` decrypts into the environment of the child process only —
+nothing plaintext touches the disk. `compose.yml` forwards these variables into
+the container via `${VAR:-}` interpolation, which reads the process environment
+first and falls back to `.env`, so a plain-`.env` deployment keeps working
+unchanged. Non-secret settings (image, origin, OIDC issuer, …) stay in `.env`.
+
+Notes:
+
+- Only variables listed under the app service's `environment:` block are
+  forwarded this way (`OIDC_CLIENT_SECRET`, `RAUTHY_API_KEY_SECRET`,
+  `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET`). To move another secret (e.g.
+  `DATABASE_URL` with an embedded password) into sops, add the same
+  `VAR: ${VAR:-}` mapping to `compose.yml`.
+- The deploy host must hold a private key matching a recipient in `.sops.yaml`
+  (age key or SSH ed25519 key). Add the host's key as a recipient and re-run
+  `sops updatekeys` before deploying from that host.
+- An encrypted `secrets.enc.yaml` is safe to commit if you want it versioned;
+  keep it out of the image build context regardless (it is not needed there).
+- Any `docker compose` invocation that (re)creates the app container needs the
+  wrapper (`up`, `run`); plain `start`/`restart`/`stop` of an existing
+  container does not re-read the environment.

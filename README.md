@@ -43,7 +43,9 @@ PostgreSQL · generic OIDC admin login · plaintext Synapse-style invite codes �
 
 ## Features (target)
 
-- Public application form: optional fields, ToS consent, Cloudflare Turnstile, optional invite code.
+- Public application form: optional fields, deployer-configurable registration rules and
+  ToS consent (`FORM_RULES_TEXT` / `FORM_RULES_FILE` / `FORM_TERMS_URL`), Cloudflare
+  Turnstile, optional invite code.
 - Invite codes: use-count + expiry + manual disable; auto-approve on valid code (Synapse
   `uses_allowed` / `pending` / `completed` / `expiry_time` semantics).
 - Admin review panel (OIDC-protected): mint/list/disable codes, review/approve/reject applications.

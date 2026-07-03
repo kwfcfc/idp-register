@@ -189,6 +189,14 @@ type Provisioner interface {
   deployment), and site key + secret must be set together. Production deployments should
   always configure a challenge — with it unset, verification is skipped. Edge rate limiting (Cloudflare,
   Nginx) remains available as defense in depth but is a deployment concern, not app code.
+- **Registration rules & ToS consent**: deployers provide their own rules text
+  (`FORM_RULES_TEXT` / `FORM_RULES_FILE`) and a terms-of-service link (`FORM_TERMS_URL`),
+  all runtime config served via `GET /api/form` like the Turnstile site key. If any is
+  configured, the form renders a required consent checkbox and the server rejects
+  submissions without `termsAccepted: true` (consent requiredness is public config, so the
+  rejection leaks nothing). Rules render as plain text, never HTML. Consent is not
+  persisted per application: the server-side check means every stored application implies
+  consent to the rules in force at submission time.
 - **Account enumeration**: identical form responses regardless of email/code existence;
   differentiate only via email content.
 - Public form cannot set IdP groups (only `permission_profiles`).
