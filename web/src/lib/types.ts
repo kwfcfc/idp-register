@@ -52,6 +52,12 @@ export type FormConfig = {
   // Cloudflare Turnstile site key (a public value, served at runtime so the
   // published image needs no build-time key — ADR-0016). '' = challenge off.
   turnstileSiteKey: string;
+  // Deployer-provided content: registration rules shown above the form and a
+  // terms-of-service link for the consent checkbox. When `requiresConsent` is
+  // true the server rejects submissions without `termsAccepted: true`.
+  rulesText: string;
+  termsUrl: string;
+  requiresConsent: boolean;
 };
 
 export type Application = {

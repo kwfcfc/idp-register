@@ -5,10 +5,29 @@ package web
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"forgejo.goba.ip-dynamic.org/gobro/idp-register/internal/config"
 )
+
+// TestRegisterRequiresConsent: with rules/terms configured, a submission
+// without termsAccepted must be rejected before it reaches the service layer
+// (the Server here has no application service — reaching it would panic).
+func TestRegisterRequiresConsent(t *testing.T) {
+	s := &Server{cfg: &config.Config{FormTermsURL: "https://example.com/tos"}}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/register",
+		strings.NewReader(`{"email":"user@example.test","termsAccepted":false}`))
+	w := httptest.NewRecorder()
+	s.handleRegister(w, r)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("unconsented submission should be 400, got %d: %s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "terms") {
+		t.Fatalf("error should mention the terms, got %s", w.Body.String())
+	}
+}
 
 // TestCheckCSRF locks the exact-match origin comparison: a prefix match would
 // accept attacker origins like https://register.example.com.evil.com.

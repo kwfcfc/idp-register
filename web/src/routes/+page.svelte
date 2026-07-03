@@ -21,6 +21,7 @@
   // only ever sees the opaque id, never the underlying IdP groups (invariant #4).
   let service = $state('');
   let turnstileToken = $state('');
+  let termsAccepted = $state(false);
 
   let submitting = $state(false);
   let done = $state(false);
@@ -50,7 +51,8 @@
         reviewText: reviewText.trim(),
         inviteCode: inviteCode.trim(),
         services: service ? [service] : [],
-        turnstileToken
+        turnstileToken,
+        termsAccepted
       });
       done = true;
     } catch (e) {
@@ -76,6 +78,12 @@
       <p class="lede" style="margin-bottom:0">你可以关闭此页面了。</p>
     {:else}
       <p class="lede">填写下面的信息提交注册申请。持有邀请码可被自动批准；否则将由管理员人工审核。</p>
+
+      {#if data.rulesText}
+        <!-- Deployer-provided registration rules (runtime config, GET /api/form).
+             Rendered as plain text with line breaks preserved — never as HTML. -->
+        <div class="rules-panel">{data.rulesText}</div>
+      {/if}
 
       {#if error}<div class="alert error">{error}</div>{/if}
 
@@ -116,6 +124,19 @@
           <input id="inviteCode" bind:value={inviteCode} placeholder="若持有邀请码请填写" />
           <div class="help">有效邀请码可自动批准；留空则进入人工审核。</div>
         </div>
+
+        {#if data.requiresConsent}
+          <label class="consent-row">
+            <input type="checkbox" bind:checked={termsAccepted} required />
+            <span>
+              我已阅读并同意{#if data.rulesText}上述注册规则{/if}{#if data.rulesText && data.termsUrl}与{/if}{#if data.termsUrl}<a
+                  href={data.termsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer">服务条款</a
+                >{/if}。
+            </span>
+          </label>
+        {/if}
 
         {#if siteKey}
           <div

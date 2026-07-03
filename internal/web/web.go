@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -107,6 +108,12 @@ func (s *Server) handlePublicForm(w http.ResponseWriter, r *http.Request) {
 		"services":         services,
 		"selectionMode":    "single", // multi-select deferred (ADR-0012)
 		"turnstileSiteKey": s.cfg.TurnstileSiteKey,
+		// Deployer-provided content: rules shown above the form, terms linked
+		// from the consent checkbox. requiresConsent tells the form to render
+		// (and the server to demand) the checkbox.
+		"rulesText":       s.cfg.FormRulesText,
+		"termsUrl":        s.cfg.FormTermsURL,
+		"requiresConsent": s.cfg.RequiresConsent(),
 	})
 }
 
@@ -117,6 +124,7 @@ type registerRequest struct {
 	InviteCode     string   `json:"inviteCode"`
 	Services       []string `json:"services"`
 	TurnstileToken string   `json:"turnstileToken"`
+	TermsAccepted  bool     `json:"termsAccepted"`
 }
 
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +136,13 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		// A clearly invalid email is the one thing we can reject without
 		// leaking account state.
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "a valid email is required"})
+		return
+	}
+
+	// Consent is enforced server-side; whether it is required is public config,
+	// so rejecting here leaks nothing (anti-enumeration stays intact).
+	if s.cfg.RequiresConsent() && !req.TermsAccepted {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "you must accept the registration rules / terms of service"})
 		return
 	}
 
@@ -332,6 +347,12 @@ func (s *Server) handleApprove(w http.ResponseWriter, r *http.Request, u store.A
 		return
 	}
 	if err := s.apps.Approve(r.Context(), r.PathValue("id"), body.ProfileID, body.Note, u); err != nil {
+		// Approve errors are state conflicts (already claimed, provision failed)
+		// except a missing application/profile, which is a plain 404.
+		if errors.Is(err, store.ErrNotFound) {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
+			return
+		}
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 		return
 	}
@@ -477,7 +498,9 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 // writeError maps store sentinels to HTTP status for read/idempotent handlers:
-// not-found → 404, conflict → 409, everything else → 500.
+// not-found → 404, conflict → 409, everything else → 500. The 500 body is
+// generic: writeError also serves anonymous endpoints, and raw err.Error() can
+// carry internals (DSNs, upstream URLs); the detail goes to the server log.
 func writeError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, store.ErrNotFound):
@@ -485,7 +508,8 @@ func writeError(w http.ResponseWriter, err error) {
 	case errors.Is(err, store.ErrConflict):
 		writeJSON(w, http.StatusConflict, map[string]string{"error": err.Error()})
 	default:
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		log.Printf("internal error: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 }
 

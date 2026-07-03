@@ -136,6 +136,11 @@ textarea { min-height: 118px; resize: vertical; line-height: 1.55; }
 .center-card .button.primary { width: 100%; padding: 14px 16px; font-size: 14px; }
 .security-note { display: flex; gap: 9px; margin-top: 20px; font-size: 12px; line-height: 1.5; color: #778079; }
 .security-note span { color: #51a16e; }
+/* Deployer-provided registration rules: plain text, line breaks preserved. */
+.rules-panel { white-space: pre-line; text-align: left; padding: 14px 16px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font-size: 13px; line-height: 1.7; color: #4d5a53; }
+.consent-row { display: flex; align-items: flex-start; gap: 9px; margin-top: 18px; font-size: 13px; line-height: 1.6; text-align: left; cursor: pointer; }
+.consent-row input { margin-top: 3px; flex: 0 0 auto; }
+.consent-row a { color: #1f5b42; }
 
 .loading { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 14px; }
 

@@ -69,6 +69,19 @@ type Config struct {
 	// GET /api/form so one published image works for every deployment.
 	TurnstileSiteKey string
 	TurnstileSecret  string
+
+	// Deployer-provided public-form content, served via GET /api/form so the
+	// stock image needs no rebuild. FormRulesText (inline or from a file) is
+	// shown above the form; FormTermsURL is linked from the consent checkbox.
+	// If either is set, submissions must carry termsAccepted=true.
+	FormRulesText string
+	FormTermsURL  string
+}
+
+// RequiresConsent reports whether public submissions must accept the
+// registration rules / terms of service (any form content is configured).
+func (c *Config) RequiresConsent() bool {
+	return c.FormRulesText != "" || c.FormTermsURL != ""
 }
 
 // Load reads and validates configuration from the process environment.
@@ -146,6 +159,21 @@ func Load() (*Config, error) {
 	// key without secret shows a challenge that is never checked. Fail fast.
 	if (c.TurnstileSiteKey == "") != (c.TurnstileSecret == "") {
 		return nil, fmt.Errorf("TURNSTILE_SITE_KEY and TURNSTILE_SECRET must be set together (or both unset to disable the challenge)")
+	}
+
+	// Public-form content: rules text comes inline or from a mounted file
+	// (exactly one; a file suits multi-line text and compose/secret mounts).
+	c.FormTermsURL = strings.TrimSpace(os.Getenv("FORM_TERMS_URL"))
+	c.FormRulesText = strings.TrimSpace(os.Getenv("FORM_RULES_TEXT"))
+	if file := strings.TrimSpace(os.Getenv("FORM_RULES_FILE")); file != "" {
+		if c.FormRulesText != "" {
+			return nil, fmt.Errorf("FORM_RULES_TEXT and FORM_RULES_FILE are mutually exclusive")
+		}
+		b, err := os.ReadFile(file)
+		if err != nil {
+			return nil, fmt.Errorf("read FORM_RULES_FILE: %w", err)
+		}
+		c.FormRulesText = strings.TrimSpace(string(b))
 	}
 
 	hours := envInt("SESSION_TTL_HOURS", 12)

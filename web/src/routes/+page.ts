@@ -12,12 +12,22 @@ export const load: PageLoad = async ({ fetch }) => {
     return {
       services: form.services ?? [],
       selectionMode: form.selectionMode,
-      turnstileSiteKey: form.turnstileSiteKey ?? ''
+      turnstileSiteKey: form.turnstileSiteKey ?? '',
+      rulesText: form.rulesText ?? '',
+      termsUrl: form.termsUrl ?? '',
+      requiresConsent: form.requiresConsent ?? false
     };
   } catch {
     // Without the site key the widget cannot render; if the server actually
-    // enforces the challenge, submission fails with a visible error and the
-    // user can reload — still better than silently blocking the form.
-    return { services: [], selectionMode: 'single' as const, turnstileSiteKey: '' };
+    // enforces the challenge (or consent), submission fails with a visible
+    // error and the user can reload — still better than silently blocking.
+    return {
+      services: [],
+      selectionMode: 'single' as const,
+      turnstileSiteKey: '',
+      rulesText: '',
+      termsUrl: '',
+      requiresConsent: false
+    };
   }
 };
