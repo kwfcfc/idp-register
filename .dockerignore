@@ -10,3 +10,13 @@ internal/web/assets
 *.db-wal
 .direnv
 *.zip
+# Local dev tooling (own pnpm workspace + lockfile; never part of the image).
+tools/
+# Local caches / editor & agent state.
+.gocache/
+.agent-shell/
+.claude/
+.DS_Store
+# sops material must never enter a build context.
+.sops.yaml
+secrets.enc.yaml
