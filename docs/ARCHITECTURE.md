@@ -184,8 +184,10 @@ type Provisioner interface {
   not by application-level IP rate limiting (ADR-0016). **Cloudflare Turnstile** is the
   implemented provider; self-hostable proof-of-work verifiers (e.g. `sebadob/spow` as an
   embeddable widget, or `TecharoHQ/anubis` as an edge interstitial in front of the app)
-  are the planned/possible alternatives. Production deployments should always configure a
-  challenge — with it unset, verification is skipped. Edge rate limiting (Cloudflare,
+  are the planned/possible alternatives. The Turnstile site key is runtime config served
+  to the browser via `GET /api/form` (no build-time key; one published image fits every
+  deployment), and site key + secret must be set together. Production deployments should
+  always configure a challenge — with it unset, verification is skipped. Edge rate limiting (Cloudflare,
   Nginx) remains available as defense in depth but is a deployment concern, not app code.
 - **Account enumeration**: identical form responses regardless of email/code existence;
   differentiate only via email content.

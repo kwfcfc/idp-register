@@ -49,6 +49,9 @@ export type PublicService = {
 export type FormConfig = {
   services: PublicService[];
   selectionMode: 'single'; // multi-select deferred (ADR-0012)
+  // Cloudflare Turnstile site key (a public value, served at runtime so the
+  // published image needs no build-time key — ADR-0016). '' = challenge off.
+  turnstileSiteKey: string;
 };
 
 export type Application = {

@@ -64,8 +64,11 @@ type Config struct {
 	SessionTTL    time.Duration
 	SecureCookies bool
 
-	// Anti-abuse
-	TurnstileSecret string // empty disables CAPTCHA verification
+	// Anti-abuse (ADR-0016). Both set → challenge enforced; both empty →
+	// disabled. The site key is public: it is served to the browser via
+	// GET /api/form so one published image works for every deployment.
+	TurnstileSiteKey string
+	TurnstileSecret  string
 }
 
 // Load reads and validates configuration from the process environment.
@@ -77,7 +80,8 @@ func Load() (*Config, error) {
 		ProvisionerKind: envOr("PROVISIONER", "rauthy"),
 		RauthyLanguage:  envOr("RAUTHY_DEFAULT_LANGUAGE", "en"),
 		RauthyTimezone:  envOr("RAUTHY_DEFAULT_TIMEZONE", "UTC"),
-		TurnstileSecret: os.Getenv("TURNSTILE_SECRET"),
+		TurnstileSiteKey: strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
+		TurnstileSecret:  strings.TrimSpace(os.Getenv("TURNSTILE_SECRET")),
 		SecureCookies:   envBool("SECURE_COOKIES", strings.EqualFold(os.Getenv("APP_ENV"), "production")),
 	}
 
@@ -136,6 +140,13 @@ func Load() (*Config, error) {
 		splitList(envOr("PROFILE_GROUP_DENYLIST", "admin,rauthy_admin")),
 		c.AdminGroup,
 	))
+
+	// Half-configured Turnstile is always a broken deployment: secret without
+	// site key renders no widget (every submission fails verification); site
+	// key without secret shows a challenge that is never checked. Fail fast.
+	if (c.TurnstileSiteKey == "") != (c.TurnstileSecret == "") {
+		return nil, fmt.Errorf("TURNSTILE_SITE_KEY and TURNSTILE_SECRET must be set together (or both unset to disable the challenge)")
+	}
 
 	hours := envInt("SESSION_TTL_HOURS", 12)
 	if hours <= 0 {

@@ -91,7 +91,9 @@ func (s *Server) Handler() http.Handler {
 // ----- public -----
 
 // handlePublicForm serves the anonymous form configuration: the selectable
-// service options (no IdP groups) and the selection mode. ADR-0012.
+// service options (no IdP groups), the selection mode, and the Turnstile site
+// key (a public value; runtime-served so one published image fits every
+// deployment — ADR-0016). An empty site key means the challenge is disabled.
 func (s *Server) handlePublicForm(w http.ResponseWriter, r *http.Request) {
 	services, err := s.apps.PublicServices(r.Context())
 	if err != nil {
@@ -102,8 +104,9 @@ func (s *Server) handlePublicForm(w http.ResponseWriter, r *http.Request) {
 		services = []store.PublicService{}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"services":      services,
-		"selectionMode": "single", // multi-select deferred (ADR-0012)
+		"services":         services,
+		"selectionMode":    "single", // multi-select deferred (ADR-0012)
+		"turnstileSiteKey": s.cfg.TurnstileSiteKey,
 	})
 }
 

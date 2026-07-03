@@ -101,6 +101,27 @@ Required changes (all **TODO**):
 - **SPA API base**: `web/src/lib/api.ts` must prefix requests with a configurable base
   (e.g. `VITE_API_BASE`) instead of relative paths.
 
+## Sub-path deployment (`BASE_PATH`) — planned, M8
+
+Deploying under a path prefix on an existing domain (`id.example.com/register` behind an
+Nginx `proxy_pass`) is **not supported yet** and cannot be achieved with proxy config
+alone:
+
+- The SPA build hard-codes absolute URLs (`/_app/...` assets, `/api`, `/auth`, `/admin`
+  links), so a prefix-stripping `proxy_pass` leaks every browser-side request back to the
+  domain root. SvelteKit's `paths.base` fixes that, but it is **baked in at build time** —
+  it cannot be changed at container runtime.
+- Sharing the target IdP's own domain is an extra trap: on a Rauthy host, `/auth/*` is
+  already Rauthy's — this app's `/auth/login`/`/auth/callback` cannot live at the root of
+  that domain at all, so prefix-stripping is structurally impossible there.
+
+The planned feature (see ROADMAP M8): `kit.paths.base` from a build-time env, frontend
+links/fetches via `$app/paths` `base`, and a Go `BASE_PATH` config (`http.StripPrefix`,
+prefixed redirects, cookie `Path`). `OIDC_REDIRECT_URI` already accommodates the prefixed
+callback. Consequence for packaging: sub-path deployments rebuild the frontend with their
+prefix; published all-in-one images remain root-path. Until then, use a dedicated
+(sub)domain such as `register.example.com` — zero changes required.
+
 ## Build output location
 
 adapter-static currently writes into `internal/web/assets/spa` (for embedding, Mode 1).

@@ -9,8 +9,15 @@ import type { FormConfig } from '$lib/types';
 export const load: PageLoad = async ({ fetch }) => {
   try {
     const form = await apiGet<FormConfig>(fetch, '/api/form');
-    return { services: form.services ?? [], selectionMode: form.selectionMode };
+    return {
+      services: form.services ?? [],
+      selectionMode: form.selectionMode,
+      turnstileSiteKey: form.turnstileSiteKey ?? ''
+    };
   } catch {
-    return { services: [], selectionMode: 'single' as const };
+    // Without the site key the widget cannot render; if the server actually
+    // enforces the challenge, submission fails with a visible error and the
+    // user can reload — still better than silently blocking the form.
+    return { services: [], selectionMode: 'single' as const, turnstileSiteKey: '' };
   }
 };

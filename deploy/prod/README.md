@@ -85,7 +85,9 @@ After startup:
 
 ## Turnstile
 
-`TURNSTILE_SECRET` enables server-side verification. The frontend must also have
-been built with `VITE_TURNSTILE_SITE_KEY`; otherwise users cannot solve the
-challenge. Keep `TURNSTILE_SECRET` unset until the published image includes the
-matching site key.
+Set `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET` together (from the same
+Cloudflare Turnstile site) to enable the challenge. The site key is a public
+value served to the browser at runtime via `GET /api/form`, so the stock
+published image works — no frontend rebuild is needed. The app refuses to start
+with only one of the two set. Leaving both unset disables verification, which is
+not recommended for an internet-facing form (ADR-0016).

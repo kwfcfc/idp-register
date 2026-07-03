@@ -106,6 +106,16 @@ three ways. Mode 1 (embedded) is done; this milestone adds:
   nginx/CDN), with the edge-reverse-proxy (relative paths, no CORS) as the default wiring.
 - ⬜ Optional true cross-origin path: CORS + `SameSite=None;Secure` + allowed-origin config
   + configurable post-login redirect + `VITE_API_BASE`.
+- ⬜ **Sub-path deployment (`BASE_PATH`)** — serve the whole app under a path prefix on an
+  existing domain (e.g. `id.example.com/register` behind an Nginx `proxy_pass`). Needs:
+  SvelteKit `kit.paths.base` injected at build time; frontend links/API calls rewritten via
+  `$app/paths` `base` (they are hard-coded absolute `/api`/`/admin`/`/auth` today); Go-side
+  `BASE_PATH` config with `http.StripPrefix`, prefixed login/callback redirects, and cookie
+  `Path`. Constraints to document: the base is **baked into the frontend at build time**
+  (sub-path deployments rebuild the SPA, the stock all-in-one image stays root-path), and
+  pure Nginx prefix-stripping cannot work without this feature — the SPA's absolute URLs
+  escape the prefix, and on the IdP's own domain `/auth/*` collides with Rauthy's paths.
+  See `DEPLOYMENT.md` § Sub-path deployment.
 
 ### M9 — CI/CD with Crow CI (ADR-0010) 🧊
 Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → multi-arch image.

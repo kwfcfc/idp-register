@@ -6,9 +6,11 @@
 
   let { data } = $props();
 
-  // Optional Cloudflare Turnstile. The site key is a build-time public value;
-  // when unset, the backend also has its secret unset and skips verification.
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+  // Optional Cloudflare Turnstile. The site key is a public value served by the
+  // backend via GET /api/form (ADR-0016), so the same build works for every
+  // deployment; when empty, the backend has no secret either and skips
+  // verification.
+  const siteKey = $derived(data.turnstileSiteKey);
 
   let email = $state('');
   let username = $state('');
