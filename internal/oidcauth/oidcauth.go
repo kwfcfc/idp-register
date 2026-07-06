@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -196,23 +197,9 @@ func (a *Authenticator) userFromClaims(sub string, claims map[string]any) store.
 }
 
 func (a *Authenticator) isAdmin(u store.AdminUser) bool {
-	for _, g := range u.Groups {
-		if g == a.cfg.AdminGroup {
-			return true
-		}
-	}
-	for _, s := range a.cfg.AdminSubs {
-		if s == u.Sub {
-			return true
-		}
-	}
-	email := strings.ToLower(u.Email)
-	for _, e := range a.cfg.AdminEmails {
-		if e == email {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(u.Groups, a.cfg.AdminGroup) ||
+		slices.Contains(a.cfg.AdminSubs, u.Sub) ||
+		slices.Contains(a.cfg.AdminEmails, strings.ToLower(u.Email))
 }
 
 // normalizeGroups accepts an array claim or a space/comma-separated string.
