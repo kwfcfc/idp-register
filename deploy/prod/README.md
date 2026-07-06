@@ -12,6 +12,26 @@ Frontend/backend separation remains a later deployment target.
 - `compose.yml` — app container, default SQLite volume, optional PostgreSQL profile.
 - `.env.example` — all required runtime configuration placeholders.
 
+## Image & Pulling
+
+Set `IDP_REGISTER_IMAGE` to the published multi-arch (amd64 + arm64) image, e.g.
+`forgejo.goba.ip-dynamic.org/gobro/idp-register:0.2.0`. Tags: `X.Y.Z` and `X.Y`
+per release, `latest` follows `main`. Pin a version tag or digest in production.
+
+**Known issue — anonymous pull fails with `401 Unauthorized` on containerd-based
+clients.** The package is public and anonymous pulls work with the classic Docker
+client, but clients that pull through containerd's resolver — Docker Engine 29+
+with the containerd image store (its default), Kubernetes/k3s kubelets, nerdctl —
+get `401` on the manifest request. Cause: Forgejo's `WWW-Authenticate` challenge
+advertises `scope="*"`; containerd's resolver then obtains an anonymous token
+without the repository pull scope, which Forgejo rejects. Workarounds:
+
+- `docker login forgejo.goba.ip-dynamic.org` with a Forgejo access token that has
+  `package:read` (on Kubernetes, the same credentials as an `imagePullSecret`); or
+- switch Docker back to the classic image store
+  (`/etc/docker/daemon.json`: `{"features": {"containerd-snapshotter": false}}`
+  and restart the daemon).
+
 ## Rauthy Setup
 
 Create these in the production Rauthy instance before starting idp-register:
