@@ -123,9 +123,20 @@ three ways. Mode 1 (embedded) is done; this milestone adds:
   escape the prefix, and on the IdP's own domain `/auth/*` collides with Rauthy's paths.
   See `DEPLOYMENT.md` § Sub-path deployment.
 
-### M9 — CI/CD with Crow CI (ADR-0010) 🧊
+### M9 — CI/CD with Crow CI (ADR-0010) 🔄
 Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → multi-arch image.
-The three packagings from M8 become the three build targets. Deferred until the app stabilizes.
+- ✅ `.crow/test.jsonnet` — gofmt/vet, `go test ./...` on SQLite + PostgreSQL (service
+  container feeds `TEST_POSTGRES_DSN`), frontend `check`/`build` with `--frozen-lockfile`.
+- ✅ `.crow/image.jsonnet` — multi-arch (amd64+arm64) image via the official
+  `crow-plugins/docker-buildx` plugin, pushed to the Forgejo registry on `main` pushes
+  (`latest`) and tags (semver via `auto_tag`); `VERSION` build arg = tag or commit SHA.
+- ✅ Everything runs on the arm64 agent: the Dockerfile's `$BUILDPLATFORM` stages
+  cross-compile, so no QEMU and no load on the weak amd64 agent.
+- One-time operator setup: add `codefloe.com/crow-plugins/docker-buildx` to
+  `CROW_PLUGINS_PRIVILEGED` on the server; create repo secrets `registry_username` /
+  `registry_password` (Forgejo token with `package:write`).
+- ⬜ Expand to the three M8 packagings as build targets once M8 lands.
+- ⬜ Docs job (mdBook, M10) appended after lint/test.
 
 ### M10 — mdBook documentation site ⬜
 Medium-term documentation target: turn the project docs into a versioned static documentation

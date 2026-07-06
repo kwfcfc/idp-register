@@ -12,6 +12,8 @@ internal/web/assets
 *.zip
 # Local dev tooling (own pnpm workspace + lockfile; never part of the image).
 tools/
+# CI config is not part of the image.
+.crow/
 # Local caches / editor & agent state.
 .gocache/
 .agent-shell/

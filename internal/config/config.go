@@ -87,15 +87,15 @@ func (c *Config) RequiresConsent() bool {
 // Load reads and validates configuration from the process environment.
 func Load() (*Config, error) {
 	c := &Config{
-		Addr:            envOr("ADDR", ":8080"),
-		OIDCGroupsClaim: envOr("OIDC_GROUPS_CLAIM", "groups"),
-		AdminGroup:      envOr("OIDC_ADMIN_GROUP", "svc:idp-register:admin"),
-		ProvisionerKind: envOr("PROVISIONER", "rauthy"),
-		RauthyLanguage:  envOr("RAUTHY_DEFAULT_LANGUAGE", "en"),
-		RauthyTimezone:  envOr("RAUTHY_DEFAULT_TIMEZONE", "UTC"),
+		Addr:             envOr("ADDR", ":8080"),
+		OIDCGroupsClaim:  envOr("OIDC_GROUPS_CLAIM", "groups"),
+		AdminGroup:       envOr("OIDC_ADMIN_GROUP", "svc:idp-register:admin"),
+		ProvisionerKind:  envOr("PROVISIONER", "rauthy"),
+		RauthyLanguage:   envOr("RAUTHY_DEFAULT_LANGUAGE", "en"),
+		RauthyTimezone:   envOr("RAUTHY_DEFAULT_TIMEZONE", "UTC"),
 		TurnstileSiteKey: strings.TrimSpace(os.Getenv("TURNSTILE_SITE_KEY")),
 		TurnstileSecret:  strings.TrimSpace(os.Getenv("TURNSTILE_SECRET")),
-		SecureCookies:   envBool("SECURE_COOKIES", strings.EqualFold(os.Getenv("APP_ENV"), "production")),
+		SecureCookies:    envBool("SECURE_COOKIES", strings.EqualFold(os.Getenv("APP_ENV"), "production")),
 	}
 
 	var err error

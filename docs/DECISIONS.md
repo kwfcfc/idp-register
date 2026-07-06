@@ -148,7 +148,8 @@ by admins.
 ---
 
 ## ADR-0010 — CI/CD with Crow CI (Jsonnet), deferred
-**Status:** accepted; implementation deferred
+**Status:** accepted; single-target pipeline implemented (2026-07-03, `.crow/`); the
+three-target expansion waits on M8
 
 **Context.** The repo is hosted on a self-managed Forgejo, but the chosen CI engine is
 **Crow CI** (Woodpecker-derived), not Forgejo Actions.
