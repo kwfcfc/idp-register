@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Rauthy 0.35.x panics on startup if its config file does not exist, even when
+# the entire configuration is supplied via environment variables. This stub
+# exists only to satisfy that requirement; every real value is set as an env
+# var by the `rauthy` step in .crow/e2e.jsonnet (env overrides/fills the config).

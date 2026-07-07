@@ -13,6 +13,13 @@
   nodeImage: 'node:24-alpine',
   postgresImage: 'postgres:16-alpine',
 
+  // e2e.jsonnet dependencies: the IdP under test plus its mail sink, and a
+  // small curl image for the readiness gates. Rauthy/mailcrab pins mirror
+  // deploy/dev and deploy/e2e.
+  rauthyImage: 'ghcr.io/sebadob/rauthy:0.35.2',
+  mailcrabImage: 'marlonb/mailcrab:latest',
+  curlImage: 'curlimages/curl:8.11.1',
+
   registry: 'forgejo.goba.ip-dynamic.org',
   imageRepo: 'forgejo.goba.ip-dynamic.org/gobro/idp-register',
 
