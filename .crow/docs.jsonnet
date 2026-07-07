@@ -14,7 +14,9 @@
 //     pre-releases) skip this workflow entirely via the evaluate filter below.
 local lib = import 'lib.libsonnet';
 
-local docsReleaseTag = 'CI_COMMIT_TAG matches "^v[0-9]+\\.[0-9]+$"';
+// [.] instead of \. — the evaluate string is parsed by expr-lang, which
+// rejects \. inside double-quoted strings as an invalid char escape.
+local docsReleaseTag = 'CI_COMMIT_TAG matches "^v[0-9]+[.][0-9]+$"';
 
 local installTools = [
   'apk add --no-cache ca-certificates curl git tar gzip >/dev/null',
