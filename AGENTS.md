@@ -104,8 +104,14 @@ migrations/            (later; startup applies schema_*.sql for now)
     etc. Share helpers via `.libsonnet` imports. Syntax ref:
     <https://crowci.dev/v5-13/usage/jsonnet/>.
   - Current pipeline (`.crow/`): `test.jsonnet` (frontend check/build + Go suite on both
-    DBs) → `image.jsonnet` (buildx multi-arch image, main/tag only) + `e2e.jsonnet`
+    DBs) → `image.jsonnet` (buildx multi-arch image, main/tag only) +
+    `docs.jsonnet` (mdBook build on `stable` / release-line `vX.Y` tags, then
+    `appleboy/drone-git-push` to Forgejo `gh-pages`) + `e2e.jsonnet`
     (manual smoke). Shared constants in `lib.libsonnet`.
+    - `docs.jsonnet` builds `docs/book/` with mdBook, prepares a versioned
+      GitHub Pages tree (`/stable/`, `/vX.Y/`, root version index), and pushes
+      Forgejo's `gh-pages`; Forgejo's mirror syncs `stable` and `gh-pages` to
+      GitHub. It does **not** use GitHub Actions or direct GitHub credentials.
     - `e2e.jsonnet` is **Crow-native, not docker-in-docker**: a real Rauthy (detached
       step) + mailcrab (service) + the *published* app image drive the register flow;
       a `depends_on` DAG gates the app's start on Rauthy readiness (its boot OIDC

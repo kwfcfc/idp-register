@@ -136,23 +136,28 @@ Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → mu
   `CROW_PLUGINS_PRIVILEGED` on the server; create repo secrets `registry_username` /
   `registry_password` (Forgejo token with `package:write`).
 - ⬜ Expand to the three M8 packagings as build targets once M8 lands.
-- ⬜ Docs job (mdBook, M10) appended after lint/test.
+- ✅ Docs job (mdBook, M10) appended after lint/test.
 
 ### M10 — mdBook documentation site ⬜
 Medium-term documentation target: turn the project docs into a versioned static documentation
 site built with Rust's `mdBook`, published from CI.
-- ⬜ Add an mdBook tree (for example `book/` or `docs/book/`) with `book.toml`, `SUMMARY.md`,
+- ✅ Add an mdBook tree (`docs/book/`) with `book.toml`, `SUMMARY.md`,
   and chapters covering introduction, concepts, installation, production Compose deployment,
   Rauthy/OIDC configuration, database choices, operations, troubleshooting, architecture,
   and ADR index.
 - ⬜ Keep source-of-truth content in sync with existing repository docs (`README.md`,
   `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/DATABASE.md`, `docs/DEPLOYMENT.md`,
   `deploy/prod/README.md`, and `deploy/dev/README.md`) without duplicating stale copies.
-- ⬜ Add local developer commands for `mdbook build` and `mdbook serve`.
-- ⬜ Add a Crow CI docs job that builds the static book artifact after lint/test succeeds.
-- ⬜ Publish the built book to the maintainer's preferred static host: Forgejo Pages if
-  available in the deployment, otherwise Cloudflare Pages.
-- ⬜ Decide the public URL and versioning policy (`stable` docs vs `main`/preview docs).
+- ✅ Add local developer commands for `mdbook build` and `mdbook serve`.
+- ✅ Add a Crow CI docs job that builds the static book artifact after lint/test succeeds.
+- ✅ Publish the built book to GitHub Pages by pushing generated HTML to Forgejo's
+  `gh-pages` branch; Forgejo's push mirror syncs `gh-pages` to GitHub, and no GitHub
+  Actions workflow is used.
+- ✅ Versioning policy for the first release: Forgejo `stable` pushes publish
+  `/stable/`; release-line tags in the form `vMAJOR.MINOR`
+  (for example `v1.0`) publish frozen docs under `/<tag>/`. Other image tags such as
+  `v1` and `v1.0.0` do not publish duplicate docs. The site root is a generated version
+  index, and each mdBook page has a `Versions` link back to it. No `main` preview docs yet.
 
 ### M11 — Pluggable human-verification providers 🧊
 Per **ADR-0016**, anti-abuse is a challenge, not IP rate limiting. Turnstile is implemented;

@@ -282,7 +282,7 @@ change invite accounting semantics after successful target-IdP creation.
 ---
 
 ## ADR-0015 — Publish project documentation as an mdBook site
-**Status:** accepted; implementation deferred
+**Status:** accepted; initial implementation complete; content sync ongoing
 
 **Context.** The repository now has several operator- and developer-facing documents:
 README, architecture notes, ADRs, database policy, deployment modes, production Compose
@@ -296,11 +296,19 @@ Rauthy/OIDC configuration, database choices, operations, troubleshooting, archit
 ADR references. It is documentation only: it does not replace the Svelte application
 frontend and it does not change the all-in-one production deployment.
 
-The docs build becomes part of the future Crow CI workflow after the application lint/test
-steps. CI should publish the generated static book artifact to the maintainer's preferred
-static host: Forgejo Pages if available for the canonical Forgejo instance, otherwise
-Cloudflare Pages. The pipeline should eventually distinguish stable published docs from
-main-branch preview docs.
+The docs build is part of the Crow CI workflow after the application lint/test steps. Crow
+builds the generated static book artifact and publishes it to **GitHub Pages** by pushing
+the generated HTML to the canonical Forgejo repository's `gh-pages` branch. Forgejo's push
+mirror syncs that branch to GitHub. GitHub Actions is not used for docs deployment; GitHub
+only serves the mirrored Pages branch.
+
+The first versioning policy is stable-only plus release snapshots: Forgejo `stable` pushes
+publish `/stable/`, while release-line tags in the form `vMAJOR.MINOR` (for example
+`v1.0`) publish frozen docs under `/<tag>/`. Other image tags such as `v1` and `v1.0.0`
+do not publish duplicate docs. The release process, not CI history inspection, is
+responsible for creating those tags from the intended stable point. The site root is a
+generated version index, and mdBook pages include a `Versions` link back to that index.
+There is no `main` preview docs site yet.
 
 **Consequences.** Operators get a single browsable install/config/deploy guide, and docs can
 be published from the same CI system as the images. Cost: the repository must avoid stale
