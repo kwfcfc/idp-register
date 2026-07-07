@@ -26,6 +26,7 @@
             pkgs.go
             pkgs.gopls
             pkgs.crow-cli
+            pkgs.mdbook
           ]
             ++ pkgs.lib.optionals (system == "aarch64-darwin") [ pkgs.pngpaste ]
             ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.wl-clipboard ];

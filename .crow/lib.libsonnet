@@ -13,7 +13,9 @@
   nodeImage: 'node:24-alpine',
   docsImage: 'alpine:3.24',
   postgresImage: 'postgres:16-alpine',
-  mdbookVersion: '0.5.4',
+  // Keep in lock-step with pkgs.mdbook in the flake devshell (nixpkgs 26.05),
+  // so a book that builds locally builds identically in CI.
+  mdbookVersion: '0.5.2',
   gitPushPlugin: 'appleboy/drone-git-push:1.2.3',
 
   // e2e.jsonnet dependencies: the IdP under test plus its mail sink, and a

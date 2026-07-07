@@ -10,9 +10,11 @@
 //   - Crow repo secrets `registry_username` / `forgejo_token`: a Forgejo
 //     account/token allowed to push the gh-pages branch.
 //   - Versioned documentation publishes only for release-line tags in the form
-//     `vMAJOR.MINOR` (for example `v1.0`). Extra image tags like `v1` and
-//     `v1.0.0` do not publish duplicate docs.
+//     `vMAJOR.MINOR` (for example `v1.0`). Other tags (`v1`, `v1.0.0`,
+//     pre-releases) skip this workflow entirely via the evaluate filter below.
 local lib = import 'lib.libsonnet';
+
+local docsReleaseTag = 'CI_COMMIT_TAG matches "^v[0-9]+\\.[0-9]+$"';
 
 local installTools = [
   'apk add --no-cache ca-certificates curl git tar gzip >/dev/null',
@@ -31,8 +33,11 @@ local pushSettings(message) = {
   local_branch: 'gh-pages',
   commit: true,
   commit_message: message,
-  author_name: 'idp-register docs bot',
-  author_email: 'docs-bot@goba.ip-dynamic.org',
+  // The push authenticates with gobro's own Forgejo token
+  // (registry_username / forgejo_token), so attribute the commit to the same
+  // identity instead of a separate bot persona.
+  author_name: 'gobro',
+  author_email: 'gobro@noreply.localhost',
   username: { from_secret: 'registry_username' },
   password: { from_secret: 'forgejo_token' },
 };
@@ -42,7 +47,7 @@ local pushSettings(message) = {
   labels: lib.labels,
   when: [
     { event: 'push', branch: 'stable' },
-    { event: 'tag' },
+    { event: 'tag', evaluate: docsReleaseTag },
   ],
 
   steps: [
@@ -63,7 +68,7 @@ local pushSettings(message) = {
     {
       name: 'push-stable-docs',
       image: lib.gitPushPlugin,
-      settings: pushSettings('[skip ci] docs: publish stable documentation'),
+      settings: pushSettings('[skip ci] docs: publish stable documentation\n\nSource-Ref: stable\nSource-Commit: ${CI_COMMIT_SHA}'),
       depends_on: ['prepare-stable-docs'],
       when: [{ event: 'push', branch: 'stable' }],
     },
@@ -74,20 +79,19 @@ local pushSettings(message) = {
         MDBOOK_OUTPUT__HTML__SITE_URL: '/idp-register/${CI_COMMIT_TAG}/',
       },
       commands: installTools + [
-        'printf "%s\\n" "${CI_COMMIT_TAG}" | grep -Eq "^v[0-9]+\\.[0-9]+$" || { echo "refusing non-docs-release tag: ${CI_COMMIT_TAG}" >&2; exit 1; }',
         'rm -rf "docs-build/${CI_COMMIT_TAG}"',
         'mdbook build docs/book -d "../../docs-build/${CI_COMMIT_TAG}"',
         'sh tools/docs/prepare-github-pages.sh "docs-build/${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" docs-build/pages',
       ],
       depends_on: [],
-      when: [{ event: 'tag', ref: 'refs/tags/v*' }],
+      when: [{ event: 'tag', evaluate: docsReleaseTag }],
     },
     {
       name: 'push-tag-docs',
       image: lib.gitPushPlugin,
-      settings: pushSettings('[skip ci] docs: publish ${CI_COMMIT_TAG} documentation'),
+      settings: pushSettings('[skip ci] docs: publish ${CI_COMMIT_TAG} documentation\n\nSource-Ref: ${CI_COMMIT_TAG}\nSource-Commit: ${CI_COMMIT_SHA}'),
       depends_on: ['prepare-tag-docs'],
-      when: [{ event: 'tag', ref: 'refs/tags/v*' }],
+      when: [{ event: 'tag', evaluate: docsReleaseTag }],
     },
   ],
 }

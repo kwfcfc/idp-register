@@ -5,7 +5,6 @@ title = "idp-register Documentation"
 authors = ["idp-register contributors"]
 description = "Operator and developer documentation for idp-register."
 language = "en"
-multilingual = false
 src = "src"
 
 [build]
