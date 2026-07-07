@@ -104,7 +104,10 @@ migrations/            (later; startup applies schema_*.sql for now)
     etc. Share helpers via `.libsonnet` imports. Syntax ref:
     <https://crowci.dev/v5-13/usage/jsonnet/>.
   - Current pipeline (`.crow/`): `test.jsonnet` (frontend check/build + Go suite on both
-    DBs) → `image.jsonnet` (buildx multi-arch image, main/tag only) +
+    DBs) → `image.jsonnet` (buildx multi-arch image, main/tag only; tag builds
+    add an SPDX SBOM attestation and a cosign signature — repo secrets
+    `cosign_private_key` / `cosign_password`, key pair shared with
+    `gobro/simple-git-server`, public key committed at `cosign.pub`) +
     `docs.jsonnet` (mdBook build on `stable` / release-line `vX.Y` tags, then
     `appleboy/drone-git-push` to Forgejo `gh-pages`) + `e2e.jsonnet`
     (manual smoke). Shared constants in `lib.libsonnet`.

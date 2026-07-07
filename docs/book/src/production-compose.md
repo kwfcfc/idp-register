@@ -8,7 +8,9 @@ the Go service behind a reverse proxy.
 Basic shape:
 
 1. Copy `deploy/prod/.env.example` to `deploy/prod/.env`.
-2. Set `IDP_REGISTER_IMAGE` to a published version tag or digest.
+2. Set `IDP_REGISTER_IMAGE` to a published version tag or digest. Release
+   images are cosign-signed — see
+   [Published Images](installation.md#published-images) for verification.
 3. Fill in `ORIGIN`, OIDC, Rauthy provisioning, cookie, and database settings.
 4. Start the stack with `docker compose up -d`.
 
