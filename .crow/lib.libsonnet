@@ -11,7 +11,10 @@
   // Keep in lock-step with the Dockerfile stage images.
   goImage: 'golang:1.26-alpine',
   nodeImage: 'node:24-alpine',
+  docsImage: 'alpine:3.24',
   postgresImage: 'postgres:16-alpine',
+  mdbookVersion: '0.5.4',
+  gitPushPlugin: 'appleboy/drone-git-push:1.2.3',
 
   // e2e.jsonnet dependencies: the IdP under test plus its mail sink, and a
   // small curl image for the readiness gates. Rauthy/mailcrab pins mirror

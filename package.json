@@ -8,6 +8,8 @@
         "dev": "pnpm --filter idp-register-web dev",
         "build": "pnpm --filter idp-register-web build",
         "check": "pnpm --filter idp-register-web check",
+        "docs:build": "mdbook build docs/book",
+        "docs:serve": "mdbook serve docs/book",
         "update:acp": "pnpm -C tools/cli up --latest @agentclientprotocol/claude-agent-acp @agentclientprotocol/codex-acp"
     },
     "engines": {

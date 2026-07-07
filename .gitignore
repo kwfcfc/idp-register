@@ -1,6 +1,8 @@
 node_modules
 .svelte-kit
 build
+/docs-build/
+/docs/book/book/
 .env
 .env.*
 !.env.example

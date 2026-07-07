@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+[book]
+title = "idp-register Documentation"
+authors = ["idp-register contributors"]
+description = "Operator and developer documentation for idp-register."
+language = "en"
+multilingual = false
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+site-url = "/idp-register/stable/"
+git-repository-url = "https://forgejo.goba.ip-dynamic.org/gobro/idp-register"
+git-repository-icon = "fas-code-fork"
+additional-js = ["version-nav.js"]
+no-section-label = false
+
+[output.html.search]
+enable = true
