@@ -2,6 +2,8 @@
 
 # idp-register
 
+[![Crow CI status](https://crow-ci.goba.ip-dynamic.org/api/v1/badges/7/status.svg)](https://crow-ci.goba.ip-dynamic.org/repos/7)
+
 A small, self-hosted **user-registration broker** for an OIDC identity provider — the
 OIDC-era equivalent of Synapse's built-in **registration tokens**.
 

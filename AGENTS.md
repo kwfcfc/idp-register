@@ -87,6 +87,13 @@ migrations/            (later; startup applies schema_*.sql for now)
 - **Test**: run the `store` layer against **both** SQLite (in-memory) and PostgreSQL
   (testcontainers) to catch dialect drift — this is the main reason dual-DB needs CI cover.
 - **CI/CD: Crow CI** (NOT Forgejo Actions), repo on `forgejo.goba.ip-dynamic.org`.
+  - **Before touching anything under `.crow/`, read
+    [`.claude/skills/crow-ci/SKILL.md`](.claude/skills/crow-ci/SKILL.md)** and the
+    reference files it points to (workflow/jsonnet syntax, plugin ecosystem, CLI).
+    It encodes this repo's conventions and the mandatory local-validation loop:
+    `jsonnet` eval → `crow lint --strict .crow/` → optional `crow exec` — never
+    validate by pushing and watching the server. The `crow` binary is provided by
+    the nix devShell (direnv puts it on PATH; otherwise `nix develop -c crow ...`).
   - Pipelines are authored in **Jsonnet**. Config lives in a **`.crow/`** directory
     (`.jsonnet`/`.libsonnet`/`.yaml`); alternatively a single `.crow.jsonnet`. Crow is
     Woodpecker-derived, so `.woodpecker*` is a fallback Crow also recognizes.
@@ -96,9 +103,15 @@ migrations/            (later; startup applies schema_*.sql for now)
     **array** yields multiple workflows. CI metadata via `std.extVar("CI_PIPELINE_EVENT")`
     etc. Share helpers via `.libsonnet` imports. Syntax ref:
     <https://crowci.dev/v5-13/usage/jsonnet/>.
-  - Planned pipeline: lint (golangci-lint) → test (both DBs) → buildx multi-arch image.
-- **Deferred for now**: the **CI/CD pipelines and deployment/testing automation are NOT
-  built yet** (per maintainer). Focus is the application itself; wire Crow CI later.
+  - Current pipeline (`.crow/`): `test.jsonnet` (frontend check/build + Go suite on both
+    DBs) → `image.jsonnet` (buildx multi-arch image, main/tag only) + `e2e.jsonnet`
+    (manual smoke). Shared constants in `lib.libsonnet`.
+    - `e2e.jsonnet` is **Crow-native, not docker-in-docker**: a real Rauthy (detached
+      step) + mailcrab (service) + the *published* app image drive the register flow;
+      a `depends_on` DAG gates the app's start on Rauthy readiness (its boot OIDC
+      discovery is fatal). The agent runs the docker backend, so a `docker:cli` step
+      dialing the socket can't feed compose bind-mounts into the daemon — prefer
+      services/detached steps for anything needing a running dependency.
 
 ## Glossary
 
