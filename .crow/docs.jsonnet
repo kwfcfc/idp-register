@@ -44,6 +44,11 @@ local pushSettings(message) = {
   // identity instead of a separate bot persona.
   author_name: 'gobro',
   author_email: 'gobro@noreply.localhost',
+  // netrc_machine is required: without it the plugin writes no ~/.netrc at all,
+  // and git falls back to prompting for a username ("could not read Username
+  // for 'https://...'") and fails non-interactively. It must be the git host,
+  // which for this Forgejo instance is the same as the container registry host.
+  netrc_machine: lib.registry,
   username: { from_secret: 'registry_username' },
   password: { from_secret: 'forgejo_token' },
 };
