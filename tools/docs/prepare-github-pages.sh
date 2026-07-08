@@ -137,3 +137,11 @@ cat >> "$pages_dir/index.html" <<'EOF'
 EOF
 
 rm -f "$versions_tmp"
+
+# This script runs as root (the mdBook build step needs apk), so the cloned
+# .git and copied files are root-owned. The next pipeline step pushes this tree
+# with the appleboy/drone-git-push plugin, whose image runs as a non-root user
+# (appuser) and would otherwise fail with "could not lock config file
+# .git/config: Permission denied". Hand off a world-writable tree so the
+# non-root plugin can configure, commit, and push it.
+chmod -R a+rwX "$pages_dir"
