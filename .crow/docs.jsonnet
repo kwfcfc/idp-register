@@ -20,7 +20,11 @@ local docsReleaseTag = 'CI_COMMIT_TAG matches "^v[0-9]+[.][0-9]+$"';
 
 local installTools = [
   'apk add --no-cache ca-certificates curl git tar gzip >/dev/null',
-  'case "$(uname -m)" in aarch64|arm64) mdbook_target=aarch64-unknown-linux-musl;; x86_64|amd64) mdbook_target=x86_64-unknown-linux-musl;; *) echo "unsupported mdBook CI architecture: $(uname -m)" >&2; exit 1;; esac; curl -fsSL "https://github.com/rust-lang/mdBook/releases/download/v' + lib.mdbookVersion + '/mdbook-v' + lib.mdbookVersion + '-${mdbook_target}.tar.gz" | tar -xz -C /usr/local/bin mdbook',
+  // $$ escapes the shell variable so Crow's ${...} substitution pass leaves it
+  // for the shell (a bare ${mdbook_target} would be replaced with empty at
+  // config time, since no CI variable by that name exists). $(uname -m) is
+  // command substitution, not ${...}, so Crow leaves it alone.
+  'case "$(uname -m)" in aarch64|arm64) mdbook_target=aarch64-unknown-linux-musl;; x86_64|amd64) mdbook_target=x86_64-unknown-linux-musl;; *) echo "unsupported mdBook CI architecture: $(uname -m)" >&2; exit 1;; esac; curl -fsSL "https://github.com/rust-lang/mdBook/releases/download/v' + lib.mdbookVersion + '/mdbook-v' + lib.mdbookVersion + '-$${mdbook_target}.tar.gz" | tar -xz -C /usr/local/bin mdbook',
   'mdbook --version',
 ];
 
@@ -61,7 +65,10 @@ local pushSettings(message) = {
       },
       commands: installTools + [
         'rm -rf docs-build/stable',
-        'mdbook build docs/book -d ../../docs-build/stable',
+        // mdBook resolves -d relative to the current working directory (the
+        // repo checkout root), not the book root — so this is docs-build/...,
+        // not ../../docs-build/.... The prepare script reads the same path.
+        'mdbook build docs/book -d docs-build/stable',
         'sh tools/docs/prepare-github-pages.sh docs-build/stable stable docs-build/pages',
       ],
       depends_on: [],
@@ -82,7 +89,7 @@ local pushSettings(message) = {
       },
       commands: installTools + [
         'rm -rf "docs-build/${CI_COMMIT_TAG}"',
-        'mdbook build docs/book -d "../../docs-build/${CI_COMMIT_TAG}"',
+        'mdbook build docs/book -d "docs-build/${CI_COMMIT_TAG}"',
         'sh tools/docs/prepare-github-pages.sh "docs-build/${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" docs-build/pages',
       ],
       depends_on: [],
