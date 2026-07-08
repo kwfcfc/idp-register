@@ -9,8 +9,11 @@
 - [Concepts](concepts.md)
 - [Installation](installation.md)
 - [Production Compose](production-compose.md)
-- [Rauthy and OIDC Setup](rauthy-oidc.md)
+- [Configuration Reference](env-reference.md)
+- [OIDC and Rauthy Setup](rauthy-oidc.md)
+- [Reverse Proxy](reverse-proxy.md)
 - [Database Choices](database.md)
+- [Administration](administration.md)
 - [Operations](operations.md)
 - [Troubleshooting](troubleshooting.md)
 

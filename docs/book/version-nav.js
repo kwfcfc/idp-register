@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 (function () {
+  var publishedBase = "/idp-register/";
+  var href = window.location.pathname.indexOf(publishedBase) === 0 ? publishedBase : "/";
+
   var link = document.createElement("a");
-  link.href = "/idp-register/";
+  link.href = href;
   link.textContent = "Versions";
   link.className = "icon-button";
   link.title = "Documentation versions";

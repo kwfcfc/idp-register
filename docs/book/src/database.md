@@ -4,14 +4,44 @@
 
 `idp-register` supports SQLite and PostgreSQL through `database/sql`.
 
-Use SQLite when you want the simplest single-node deployment. The production
-Compose file stores the database in the app data volume by default.
+## SQLite
+
+SQLite is the simplest production deployment for a small self-hosted service.
+When `DATABASE_URL` is unset, the app uses `SQLITE_PATH`.
+
+Recommended Compose value:
+
+```dotenv
+SQLITE_PATH=/data/idp-register.db
+```
+
+The production Compose example mounts `/data` as a persistent volume. Back up
+the database file from that volume before upgrading or moving hosts.
+
+## PostgreSQL
 
 Use PostgreSQL when you want external database backup tooling, monitoring, or
-higher write concurrency.
+higher write concurrency. Set `DATABASE_URL`:
+
+```dotenv
+DATABASE_URL=postgres://idp_register:replace-with-db-password@postgres:5432/idp_register?sslmode=disable
+```
+
+With the included production Compose file, start the PostgreSQL service with:
+
+```sh
+docker compose --profile postgres up -d
+```
+
+For an external PostgreSQL server, point `DATABASE_URL` at that server and omit
+the bundled Compose profile.
+
+## Do Not Switch Engines In Place
 
 Do not switch between SQLite and PostgreSQL by changing `DATABASE_URL` on an
 existing deployment. Moving data between engines is a manual migration task.
+
+## Portability Model
 
 Portability constraints:
 
