@@ -1,0 +1,998 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>idp-register Documentation</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Operator and developer documentation for idp-register.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-735e5f20.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-b9a6d97e.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">idp-register Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://forgejo.goba.ip-dynamic.org/gobro/idp-register" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M80 104c13.3 0 24-10.7 24-24s-10.7-24-24-24S56 66.7 56 80s10.7 24 24 24zm80-24c0 32.8-19.7 61-48 73.3V192c0 17.7 14.3 32 32 32H304c17.7 0 32-14.3 32-32V153.3C307.7 141 288 112.8 288 80c0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3V192c0 53-43 96-96 96H256v70.7c28.3 12.3 48 40.5 48 73.3c0 44.2-35.8 80-80 80s-80-35.8-80-80c0-32.8 19.7-61 48-73.3V288H144c-53 0-96-43-96-96V153.3C19.7 141 0 112.8 0 80C0 35.8 35.8 0 80 0s80 35.8 80 80zm208 24c13.3 0 24-10.7 24-24s-10.7-24-24-24s-24 10.7-24 24s10.7 24 24 24zM248 432c0-13.3-10.7-24-24-24s-24 10.7-24 24s10.7 24 24 24s24-10.7 24-24z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p><code>idp-register</code> is a small, self-hosted registration broker for an OIDC identity
+provider. It gives an OIDC-based stack the registration-token workflow that
+Synapse operators are used to:</p>
+<ul>
+<li>people apply through a public form;</li>
+<li>a valid invite code can auto-approve the application;</li>
+<li>otherwise an administrator reviews the request;</li>
+<li>approved users are created in the target identity provider.</li>
+</ul>
+<p>On approval, <code>idp-register</code> provisions the user into the target identity provider
+and lets that IdP send the activation or first-password email. The broker does
+not send a second verification email on the happy path.</p>
+<p>The normal deployment is one OCI image containing:</p>
+<ul>
+<li>a Go HTTP server;</li>
+<li>an embedded static SvelteKit frontend;</li>
+<li>either SQLite or PostgreSQL storage;</li>
+<li>generic OIDC admin login;</li>
+<li>a target-IdP provisioner, with Rauthy implemented first.</li>
+</ul>
+<h2 id="who-this-manual-is-for"><a class="header" href="#who-this-manual-is-for">Who This Manual Is For</a></h2>
+<p>This book is for operators deploying and maintaining <code>idp-register</code>. It focuses
+on Compose deployment, environment variables, OIDC setup, Rauthy provisioning,
+database choices, and operational checks.</p>
+<p>Development internals live in the source repository under <code>docs/</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="concepts"><a class="header" href="#concepts">Concepts</a></h1>
+<h2 id="registration-flow"><a class="header" href="#registration-flow">Registration Flow</a></h2>
+<p>The public form collects an application. If the applicant supplies a valid invite
+code, the service reserves one use of that code and can approve the application
+automatically. Without an invite code, the application waits for an admin.</p>
+<p>When an application is approved, <code>idp-register</code> creates the user in the
+provisioning target IdP and assigns the groups from the selected permission
+profile. The target IdP then sends the activation or first-password email.</p>
+<h2 id="application"><a class="header" href="#application">Application</a></h2>
+<p>An application is a public registration submission. It starts as pending unless
+a valid invite code can reserve a use and auto-approve it.</p>
+<h2 id="invite-code"><a class="header" href="#invite-code">Invite Code</a></h2>
+<p>Invite codes are plaintext, limited-use, time-limited strings. They follow the
+Synapse-style counters:</p>
+<ul>
+<li><code>uses_allowed</code>: maximum total successful uses;</li>
+<li><code>pending</code>: reserved uses whose provisioning has not completed yet;</li>
+<li><code>completed</code>: successfully provisioned uses;</li>
+<li><code>expiry_time</code>: optional expiry timestamp.</li>
+</ul>
+<p>Codes must never be logged. A valid invite code is bound to one permission
+profile and always provisions into that profile.</p>
+<h2 id="permission-profile"><a class="header" href="#permission-profile">Permission Profile</a></h2>
+<p>A permission profile is a server-side bundle of target-IdP groups. The public
+form can request a public profile as a service choice, but it never submits raw
+group names. Final group assignment is resolved server-side during approval.</p>
+<p>Administrators create profiles from the live target-IdP group catalog. Groups in
+<code>PROFILE_GROUP_DENYLIST</code>, plus the admin group used by this application, are not
+offered for registrant profiles.</p>
+<h2 id="two-idp-roles"><a class="header" href="#two-idp-roles">Two IdP Roles</a></h2>
+<p><code>idp-register</code> deliberately separates two identity-provider roles:</p>
+<ul>
+<li>the admin-auth IdP, where administrators log in through standards-only OIDC;</li>
+<li>the provisioning target IdP, where approved end users are created through a
+provider-specific implementation behind the <code>Provisioner</code> interface.</li>
+</ul>
+<p>Rauthy-specific API calls belong only in the Rauthy provisioner. Admin login must
+remain generic OIDC.</p>
+<p>Even when both roles point to the same Rauthy instance, configure them as two
+separate integrations: one OIDC client for admin login, and one Rauthy API key
+for user creation.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<p>The recommended deployment is the all-in-one container image. The Go server
+serves both the API and the embedded frontend from one origin, which keeps
+cookies, CSRF protection, and OIDC redirects simple.</p>
+<h2 id="requirements"><a class="header" href="#requirements">Requirements</a></h2>
+<ul>
+<li>Docker Compose or another container runtime.</li>
+<li>A public HTTPS URL for the service, such as <code>https://register.example.com</code>.</li>
+<li>An OIDC client for administrator login.</li>
+<li>A provisioning target IdP. Rauthy is currently implemented.</li>
+<li>Working SMTP in the target IdP, because it sends the activation email.</li>
+</ul>
+<p>For production, put <code>idp-register</code> behind a reverse proxy such as Caddy, Nginx,
+Traefik, or Cloudflare Tunnel. Bind the container to localhost unless another
+host must reach it directly.</p>
+<h2 id="container-image"><a class="header" href="#container-image">Container Image</a></h2>
+<p>Published images are multi-arch for amd64 and arm64:</p>
+<pre><code class="language-sh">docker pull forgejo.goba.ip-dynamic.org/gobro/idp-register:&lt;version&gt;
+</code></pre>
+<p>Pin a version tag or image digest in production. Avoid deploying an unpinned
+moving tag unless you intentionally want automatic upgrades.</p>
+<p>Release images (version tags, not the moving <code>latest</code>) are signed with cosign
+and carry an SPDX software bill of materials (SBOM). The signing public key is
+committed at the repository root as <code>cosign.pub</code>:</p>
+<pre><code class="language-sh">cosign verify --key cosign.pub \
+  forgejo.goba.ip-dynamic.org/gobro/idp-register:&lt;version&gt;
+</code></pre>
+<h3 id="inspect-the-sbom"><a class="header" href="#inspect-the-sbom">Inspect the SBOM</a></h3>
+<p>The SBOM is attached to the image index as an in-toto attestation, so you can
+audit the exact package set of a release without pulling and unpacking it:</p>
+<pre><code class="language-sh">docker buildx imagetools inspect \
+  forgejo.goba.ip-dynamic.org/gobro/idp-register:&lt;version&gt; \
+  --format '{{ json .SBOM }}'
+</code></pre>
+<p>Feed the JSON to a scanner such as <code>grype sbom:-</code> or <code>trivy sbom</code> to check the
+release against known-vulnerability databases before rolling it out.</p>
+<h2 id="quick-start-with-compose"><a class="header" href="#quick-start-with-compose">Quick Start With Compose</a></h2>
+<p>The repository includes a production Compose example under <code>deploy/prod/</code>. If
+you have not cloned the repository, copy the Compose file and <code>.env</code> shown in
+the <a href="#production-compose">Production Compose</a> chapter instead — pulling the
+image is the only hard requirement.</p>
+<pre><code class="language-sh">cd deploy/prod
+cp .env.example .env
+$EDITOR .env
+docker compose up -d
+</code></pre>
+<p>At minimum, fill in:</p>
+<ul>
+<li><code>IDP_REGISTER_IMAGE</code></li>
+<li><code>ORIGIN</code></li>
+<li><code>OIDC_ISSUER</code></li>
+<li><code>OIDC_CLIENT_ID</code></li>
+<li><code>OIDC_CLIENT_SECRET</code></li>
+<li><code>OIDC_REDIRECT_URI</code></li>
+<li><code>RAUTHY_API_BASE</code></li>
+<li><code>RAUTHY_API_KEY_NAME</code></li>
+<li><code>RAUTHY_API_KEY_SECRET</code></li>
+</ul>
+<p>Open <code>/healthz</code> on the public URL, then visit <code>/login</code> and complete the admin
+OIDC login. The first login and everything after it are covered in
+<a href="#administration">Administration</a>.</p>
+<h2 id="build-from-source"><a class="header" href="#build-from-source">Build from Source</a></h2>
+<p>Building your own image is optional. It is useful for air-gapped sites, a
+private registry, or a supply-chain audit where you want to reproduce the
+published artifact yourself. The frontend is built with pnpm, embedded into the
+Go binary, and the whole thing ships as one multi-stage image.</p>
+<p>For local development:</p>
+<pre><code class="language-sh">pnpm install
+pnpm --filter idp-register-web build
+go run ./cmd/server
+</code></pre>
+<p>For a production-style binary build:</p>
+<pre><code class="language-sh">pnpm --filter idp-register-web build
+CGO_ENABLED=0 go build -o idp-register ./cmd/server
+</code></pre>
+<p>For a production image, then push it to your own registry:</p>
+<pre><code class="language-sh">docker build -t registry.example.com/idp-register:local .
+docker push registry.example.com/idp-register:local
+</code></pre>
+<p>Set <code>IDP_REGISTER_IMAGE</code> in <code>.env</code> to the tag you pushed. To match the release
+supply chain, buildx can also emit an SBOM (<code>--sbom=true</code>) and cosign can sign
+your own image with a key you control.</p>
+<p>For development, copy <code>.env.example</code> to <code>.env</code> at the repository root and fill
+in the same runtime values used by the container.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="production-compose"><a class="header" href="#production-compose">Production Compose</a></h1>
+<p>The production Compose example runs the all-in-one image behind a reverse proxy.
+SQLite is enabled by default through a persistent Docker volume. PostgreSQL is
+available through a Compose profile.</p>
+<h2 id="minimal-compose-file"><a class="header" href="#minimal-compose-file">Minimal Compose File</a></h2>
+<p>This is the same shape used by <code>deploy/prod/compose.yml</code>:</p>
+<pre><code class="language-yaml">services:
+  app:
+    image: ${IDP_REGISTER_IMAGE:?set IDP_REGISTER_IMAGE in .env}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ADDR: ":8080"
+      SQLITE_PATH: ${SQLITE_PATH:-/data/idp-register.db}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      RAUTHY_API_KEY_SECRET: ${RAUTHY_API_KEY_SECRET:-}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
+    ports:
+      - "${IDP_REGISTER_BIND:-127.0.0.1:8080}:8080"
+    volumes:
+      - app-data:/data
+    restart: unless-stopped
+
+volumes:
+  app-data:
+</code></pre>
+<p>The default bind address, <code>127.0.0.1:8080</code>, is appropriate when Caddy, Nginx, or
+Cloudflare Tunnel runs on the same host.</p>
+<h2 id="example-env"><a class="header" href="#example-env">Example .env</a></h2>
+<p>Start from <code>deploy/prod/.env.example</code>. A compact SQLite configuration looks like
+this:</p>
+<pre><code class="language-dotenv">IDP_REGISTER_IMAGE=forgejo.goba.ip-dynamic.org/gobro/idp-register:0.2.0
+IDP_REGISTER_BIND=127.0.0.1:8080
+
+ORIGIN=https://register.example.com
+TRUST_CF_CONNECTING_IP=true
+SQLITE_PATH=/data/idp-register.db
+
+OIDC_ISSUER=https://auth.example.com/auth/v1/
+OIDC_CLIENT_ID=idp-register
+OIDC_CLIENT_SECRET=replace-with-oidc-client-secret
+OIDC_REDIRECT_URI=https://register.example.com/auth/callback
+OIDC_SCOPES=openid email profile groups
+OIDC_GROUPS_CLAIM=groups
+OIDC_ADMIN_GROUP=svc:idp-register:admin
+
+PROFILE_GROUP_DENYLIST=admin,rauthy_admin
+
+PROVISIONER=rauthy
+RAUTHY_API_BASE=https://auth.example.com/auth/v1
+RAUTHY_API_KEY_NAME=idp-register
+RAUTHY_API_KEY_SECRET=replace-with-rauthy-api-key-secret
+RAUTHY_DEFAULT_LANGUAGE=en
+RAUTHY_DEFAULT_TIMEZONE=UTC
+
+SESSION_TTL_HOURS=12
+SECURE_COOKIES=true
+APP_ENV=production
+
+# Optional but recommended for an internet-facing public form.
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET=
+
+# Optional public-form rules and terms.
+FORM_RULES_FILE=/data/rules.txt
+FORM_TERMS_URL=https://example.com/terms
+</code></pre>
+<p>Do not put quotes around values unless your shell or Compose workflow requires
+them. For multi-line registration rules, mount a file into the container and set
+<code>FORM_RULES_FILE</code>; <code>.env</code> values are better kept single-line.</p>
+<h2 id="start-with-sqlite"><a class="header" href="#start-with-sqlite">Start With SQLite</a></h2>
+<p>SQLite is used when <code>DATABASE_URL</code> is unset:</p>
+<pre><code class="language-sh">cd deploy/prod
+cp .env.example .env
+$EDITOR .env
+docker compose up -d
+</code></pre>
+<p>The database file is stored at <code>SQLITE_PATH</code> inside the app container. With the
+sample Compose file, that means <code>/data/idp-register.db</code> in the <code>app-data</code>
+volume.</p>
+<h2 id="start-with-postgresql"><a class="header" href="#start-with-postgresql">Start With PostgreSQL</a></h2>
+<p>Uncomment and fill these values in <code>.env</code>:</p>
+<pre><code class="language-dotenv">DATABASE_URL=postgres://idp_register:replace-with-db-password@postgres:5432/idp_register?sslmode=disable
+POSTGRES_DB=idp_register
+POSTGRES_USER=idp_register
+POSTGRES_PASSWORD=replace-with-db-password
+</code></pre>
+<p>Then start the stack with the profile:</p>
+<pre><code class="language-sh">docker compose --profile postgres up -d
+</code></pre>
+<p>Use PostgreSQL when you want external database backup tooling, monitoring, or
+higher write concurrency. Do not switch an existing deployment between SQLite
+and PostgreSQL just by changing <code>DATABASE_URL</code>; that requires a data migration.</p>
+<h2 id="first-production-check"><a class="header" href="#first-production-check">First Production Check</a></h2>
+<p>After startup, check the deployment in this order:</p>
+<ol>
+<li><code>GET /healthz</code> responds with HTTP 200.</li>
+<li><code>/login</code> redirects to the admin-auth IdP and returns to <code>/auth/callback</code>.</li>
+<li>The logged-in admin reaches <code>/admin</code>.</li>
+<li>The permission profile editor loads groups from Rauthy.</li>
+<li>A public application can be submitted.</li>
+<li>Approval creates the user in Rauthy with the expected groups.</li>
+<li>Rauthy sends exactly one activation or first-password email.</li>
+</ol>
+<p>If login works but the profile editor cannot load groups, the OIDC client is
+probably fine and the Rauthy provisioning API key is the part to inspect.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="configuration-reference"><a class="header" href="#configuration-reference">Configuration Reference</a></h1>
+<p><code>idp-register</code> is configured entirely through environment variables. In Compose,
+put non-secret values in <code>.env</code>. Secrets can also come from the process
+environment, a secrets manager, or <code>sops exec-env</code>.</p>
+<h2 id="http"><a class="header" href="#http">HTTP</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>ADDR</code></td><td style="text-align: right">no</td><td><code>:8080</code></td><td>Listen address inside the container or process.</td></tr>
+<tr><td><code>ORIGIN</code></td><td style="text-align: right">yes</td><td></td><td>Public browser-facing origin, for example <code>https://register.example.com</code>. No trailing slash is needed.</td></tr>
+<tr><td><code>TRUST_CF_CONNECTING_IP</code></td><td style="text-align: right">no</td><td><code>true</code></td><td>Use <code>CF-Connecting-IP</code> as the client IP when behind Cloudflare.</td></tr>
+</tbody>
+</table>
+</div>
+<p><code>ORIGIN</code> must match the URL users type in the browser. It is used for CSRF
+checks on admin mutations, so a mismatch can break POST, PUT, and DELETE
+requests after login.</p>
+<h2 id="database"><a class="header" href="#database">Database</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>DATABASE_URL</code></td><td style="text-align: right">no</td><td></td><td>PostgreSQL DSN. When set, PostgreSQL is used and <code>SQLITE_PATH</code> is ignored.</td></tr>
+<tr><td><code>SQLITE_PATH</code></td><td style="text-align: right">no</td><td><code>idp-register.db</code></td><td>SQLite path or DSN. In the container, use a mounted path such as <code>/data/idp-register.db</code>.</td></tr>
+</tbody>
+</table>
+</div>
+<p>Choose one database engine for a deployment. Switching engines later is a manual
+migration, not a configuration toggle.</p>
+<h2 id="admin-oidc-login"><a class="header" href="#admin-oidc-login">Admin OIDC Login</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>OIDC_ISSUER</code></td><td style="text-align: right">yes</td><td></td><td>Issuer URL from the admin-auth IdP discovery metadata.</td></tr>
+<tr><td><code>OIDC_CLIENT_ID</code></td><td style="text-align: right">yes</td><td></td><td>Client ID for the admin UI OIDC client.</td></tr>
+<tr><td><code>OIDC_CLIENT_SECRET</code></td><td style="text-align: right">yes</td><td></td><td>Client secret for the admin UI OIDC client.</td></tr>
+<tr><td><code>OIDC_REDIRECT_URI</code></td><td style="text-align: right">yes</td><td></td><td>Callback URL, normally <code>https://register.example.com/auth/callback</code>.</td></tr>
+<tr><td><code>OIDC_SCOPES</code></td><td style="text-align: right">no</td><td><code>openid email profile groups</code></td><td>Space- or comma-separated scopes.</td></tr>
+<tr><td><code>OIDC_GROUPS_CLAIM</code></td><td style="text-align: right">no</td><td><code>groups</code></td><td>Claim containing admin group or role names.</td></tr>
+<tr><td><code>OIDC_ADMIN_GROUP</code></td><td style="text-align: right">no</td><td><code>svc:idp-register:admin</code></td><td>Group value that grants admin access.</td></tr>
+<tr><td><code>OIDC_ADMIN_SUBS</code></td><td style="text-align: right">no</td><td></td><td>Space- or comma-separated subject allow-list.</td></tr>
+<tr><td><code>OIDC_ADMIN_EMAILS</code></td><td style="text-align: right">no</td><td></td><td>Space- or comma-separated email allow-list.</td></tr>
+</tbody>
+</table>
+</div>
+<p>Prefer group-based authorization. Use subject or email allow-lists only when the
+IdP cannot emit a reliable group or role claim.</p>
+<h2 id="provisioning-target-idp"><a class="header" href="#provisioning-target-idp">Provisioning Target IdP</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>PROVISIONER</code></td><td style="text-align: right">no</td><td><code>rauthy</code></td><td>Provisioner implementation. Only <code>rauthy</code> is currently implemented.</td></tr>
+<tr><td><code>RAUTHY_API_BASE</code></td><td style="text-align: right">yes, for Rauthy</td><td></td><td>Rauthy API base URL, usually ending in <code>/auth/v1</code> without a trailing slash.</td></tr>
+<tr><td><code>RAUTHY_API_KEY_NAME</code></td><td style="text-align: right">yes, for Rauthy</td><td></td><td>Name of the Rauthy API key.</td></tr>
+<tr><td><code>RAUTHY_API_KEY_SECRET</code></td><td style="text-align: right">yes, for Rauthy</td><td></td><td>Secret value of the Rauthy API key.</td></tr>
+<tr><td><code>RAUTHY_DEFAULT_LANGUAGE</code></td><td style="text-align: right">no</td><td><code>en</code></td><td>Language assigned to created Rauthy users.</td></tr>
+<tr><td><code>RAUTHY_DEFAULT_TIMEZONE</code></td><td style="text-align: right">no</td><td><code>UTC</code></td><td>Timezone assigned to created Rauthy users.</td></tr>
+<tr><td><code>PROFILE_GROUP_DENYLIST</code></td><td style="text-align: right">no</td><td><code>admin,rauthy_admin</code></td><td>Groups never offered for registrant permission profiles. <code>OIDC_ADMIN_GROUP</code> is always added automatically.</td></tr>
+</tbody>
+</table>
+</div>
+<p>The admin-auth IdP and the provisioning target IdP are separate roles. They may
+point at the same Rauthy instance, but they still use different credentials and
+different protocols.</p>
+<h2 id="sessions-and-cookies"><a class="header" href="#sessions-and-cookies">Sessions and Cookies</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>SESSION_TTL_HOURS</code></td><td style="text-align: right">no</td><td><code>12</code></td><td>Admin session lifetime. Invalid or non-positive values fall back to 12 hours.</td></tr>
+<tr><td><code>SECURE_COOKIES</code></td><td style="text-align: right">no</td><td><code>true</code> when <code>APP_ENV=production</code>, otherwise <code>false</code></td><td>Adds the <code>Secure</code> cookie attribute. Must be true behind HTTPS.</td></tr>
+<tr><td><code>APP_ENV</code></td><td style="text-align: right">no</td><td></td><td>Set to <code>production</code> to make secure cookies the default.</td></tr>
+</tbody>
+</table>
+</div>
+<p>For public HTTPS deployments, use <code>APP_ENV=production</code> and
+<code>SECURE_COOKIES=true</code>.</p>
+<h2 id="public-form-protection"><a class="header" href="#public-form-protection">Public Form Protection</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>TURNSTILE_SITE_KEY</code></td><td style="text-align: right">no</td><td></td><td>Cloudflare Turnstile site key. Public value served to the browser.</td></tr>
+<tr><td><code>TURNSTILE_SECRET</code></td><td style="text-align: right">no</td><td></td><td>Cloudflare Turnstile secret used by the backend.</td></tr>
+</tbody>
+</table>
+</div>
+<p>Set both Turnstile variables to enable the challenge. Leave both unset to
+disable it. Setting only one is a startup error.</p>
+<h2 id="registration-rules-and-terms"><a class="header" href="#registration-rules-and-terms">Registration Rules and Terms</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th style="text-align: right">Required</th><th>Default</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>FORM_RULES_TEXT</code></td><td style="text-align: right">no</td><td></td><td>Plain text rules shown above the public form.</td></tr>
+<tr><td><code>FORM_RULES_FILE</code></td><td style="text-align: right">no</td><td></td><td>Path to a file containing plain text rules. Mutually exclusive with <code>FORM_RULES_TEXT</code>.</td></tr>
+<tr><td><code>FORM_TERMS_URL</code></td><td style="text-align: right">no</td><td></td><td>Terms-of-service URL linked from the consent checkbox.</td></tr>
+</tbody>
+</table>
+</div>
+<p>If any of these values is set, the public form requires consent and the server
+rejects submissions that do not include it.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="oidc-and-rauthy-setup"><a class="header" href="#oidc-and-rauthy-setup">OIDC and Rauthy Setup</a></h1>
+<p>Rauthy currently appears in two places:</p>
+<ul>
+<li>as a possible admin-auth OIDC provider;</li>
+<li>as the implemented provisioning target IdP.</li>
+</ul>
+<p>Those roles are configured separately even when the same Rauthy instance provides
+both. Do not reuse the OIDC client secret as the Rauthy provisioning API key.</p>
+<h2 id="admin-oidc-client"><a class="header" href="#admin-oidc-client">Admin OIDC Client</a></h2>
+<p>Create an OIDC client in the IdP used by administrators. This IdP can be
+Rauthy, Authentik, Dex, or another standards-compliant OIDC provider.</p>
+<p>Typical values:</p>
+<pre><code class="language-dotenv">OIDC_ISSUER=https://auth.example.com/auth/v1/
+OIDC_CLIENT_ID=idp-register
+OIDC_CLIENT_SECRET=replace-with-oidc-client-secret
+OIDC_REDIRECT_URI=https://register.example.com/auth/callback
+OIDC_SCOPES=openid email profile groups
+OIDC_GROUPS_CLAIM=groups
+OIDC_ADMIN_GROUP=svc:idp-register:admin
+</code></pre>
+<p>In the IdP client configuration, set:</p>
+<ul>
+<li>redirect URI: <code>https://register.example.com/auth/callback</code>;</li>
+<li>scopes: usually <code>openid email profile groups</code>;</li>
+<li>client type: confidential web application, if your IdP asks;</li>
+<li>PKCE: allowed or required.</li>
+</ul>
+<p>The issuer string must match the IdP discovery metadata exactly. For Rauthy,
+that commonly means <code>https://auth.example.com/auth/v1/</code> with the trailing slash.</p>
+<h2 id="admin-authorization"><a class="header" href="#admin-authorization">Admin Authorization</a></h2>
+<p>After OIDC login, <code>idp-register</code> only admits users that match one of these:</p>
+<ul>
+<li>their configured groups claim contains <code>OIDC_ADMIN_GROUP</code>;</li>
+<li>their <code>sub</code> claim appears in <code>OIDC_ADMIN_SUBS</code>;</li>
+<li>their email appears in <code>OIDC_ADMIN_EMAILS</code>.</li>
+</ul>
+<p>Group-based authorization is the best default because it stays managed in the
+IdP. Use <code>OIDC_ADMIN_SUBS</code> or <code>OIDC_ADMIN_EMAILS</code> only for IdPs that cannot emit
+a group or role claim.</p>
+<h2 id="provisioning-api-key"><a class="header" href="#provisioning-api-key">Provisioning API Key</a></h2>
+<p>Create a Rauthy API key for the provisioner:</p>
+<pre><code class="language-dotenv">PROVISIONER=rauthy
+RAUTHY_API_BASE=https://auth.example.com/auth/v1
+RAUTHY_API_KEY_NAME=idp-register
+RAUTHY_API_KEY_SECRET=replace-with-rauthy-api-key-secret
+RAUTHY_DEFAULT_LANGUAGE=en
+RAUTHY_DEFAULT_TIMEZONE=UTC
+</code></pre>
+<p>The API key needs rights to:</p>
+<ul>
+<li>read users;</li>
+<li>create users;</li>
+<li>update users;</li>
+<li>read groups.</li>
+</ul>
+<p>Group read permission is required because permission profiles are validated
+against the live target-IdP group catalog.</p>
+<h2 id="permission-profiles"><a class="header" href="#permission-profiles">Permission Profiles</a></h2>
+<p>After the first admin login, open the permission profile page and create one or
+more profiles from Rauthy groups. If a profile should be selectable on the
+public form, mark it public and give it a user-facing label.</p>
+<p>Use <code>PROFILE_GROUP_DENYLIST</code> to hide infrastructure groups from the profile
+editor. The value of <code>OIDC_ADMIN_GROUP</code> is always denied automatically.</p>
+<h2 id="mail"><a class="header" href="#mail">Mail</a></h2>
+<p>Rauthy SMTP must work in production. <code>idp-register</code> relies on Rauthy to send the
+activation or first-password email after a user is created.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="reverse-proxy"><a class="header" href="#reverse-proxy">Reverse Proxy</a></h1>
+<p>Run <code>idp-register</code> on its own origin, such as <code>https://register.example.com</code>.
+The application currently expects to live at the domain root, not under a path
+prefix like <code>/register</code>.</p>
+<p>Keep these values aligned:</p>
+<ul>
+<li>public URL: <code>https://register.example.com</code></li>
+<li><code>ORIGIN=https://register.example.com</code></li>
+<li><code>OIDC_REDIRECT_URI=https://register.example.com/auth/callback</code></li>
+<li>OIDC client redirect URI in the IdP: the same callback URL</li>
+</ul>
+<h2 id="caddy-example"><a class="header" href="#caddy-example">Caddy Example</a></h2>
+<pre><code class="language-caddyfile">register.example.com {
+  reverse_proxy 127.0.0.1:8080
+}
+</code></pre>
+<h2 id="nginx-example"><a class="header" href="#nginx-example">Nginx Example</a></h2>
+<pre><code class="language-nginx">server {
+    listen 443 ssl http2;
+    server_name register.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/register.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/register.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+</code></pre>
+<h2 id="cloudflare"><a class="header" href="#cloudflare">Cloudflare</a></h2>
+<p>When proxied through Cloudflare, keep <code>TRUST_CF_CONNECTING_IP=true</code> if you want
+logs and audit metadata to use the visitor IP from <code>CF-Connecting-IP</code>.</p>
+<p>Cloudflare Tunnel is also fine: point the tunnel service at
+<code>http://127.0.0.1:8080</code> and keep <code>ORIGIN</code> set to the public hostname.</p>
+<h2 id="path-prefixes"><a class="header" href="#path-prefixes">Path Prefixes</a></h2>
+<p>Sub-path deployment is not currently supported. Use a dedicated hostname or
+subdomain instead of trying to serve the app at <code>https://example.com/register</code>.</p>
+<p>The frontend, API routes, auth routes, cookies, and OIDC callback are all built
+around root-path deployment today.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="database-choices"><a class="header" href="#database-choices">Database Choices</a></h1>
+<p><code>idp-register</code> supports SQLite and PostgreSQL through <code>database/sql</code>.</p>
+<h2 id="sqlite"><a class="header" href="#sqlite">SQLite</a></h2>
+<p>SQLite is the simplest production deployment for a small self-hosted service.
+When <code>DATABASE_URL</code> is unset, the app uses <code>SQLITE_PATH</code>.</p>
+<p>Recommended Compose value:</p>
+<pre><code class="language-dotenv">SQLITE_PATH=/data/idp-register.db
+</code></pre>
+<p>The production Compose example mounts <code>/data</code> as a persistent volume. Back up
+the database file from that volume before upgrading or moving hosts.</p>
+<h2 id="postgresql"><a class="header" href="#postgresql">PostgreSQL</a></h2>
+<p>Use PostgreSQL when you want external database backup tooling, monitoring, or
+higher write concurrency. Set <code>DATABASE_URL</code>:</p>
+<pre><code class="language-dotenv">DATABASE_URL=postgres://idp_register:replace-with-db-password@postgres:5432/idp_register?sslmode=disable
+</code></pre>
+<p>With the included production Compose file, start the PostgreSQL service with:</p>
+<pre><code class="language-sh">docker compose --profile postgres up -d
+</code></pre>
+<p>For an external PostgreSQL server, point <code>DATABASE_URL</code> at that server and omit
+the bundled Compose profile.</p>
+<h2 id="do-not-switch-engines-in-place"><a class="header" href="#do-not-switch-engines-in-place">Do Not Switch Engines In Place</a></h2>
+<p>Do not switch between SQLite and PostgreSQL by changing <code>DATABASE_URL</code> on an
+existing deployment. Moving data between engines is a manual migration task.</p>
+<h2 id="portability-model"><a class="header" href="#portability-model">Portability Model</a></h2>
+<p>Portability constraints:</p>
+<ul>
+<li>UUIDs and timestamps are generated by Go, not by database defaults;</li>
+<li>timestamps are stored as epoch milliseconds;</li>
+<li>small lists and objects are JSON stored in text columns;</li>
+<li>PostgreSQL-only column types are not used in the shared schema.</li>
+</ul>
+<p>The logical schema and dialect mapping are documented in <code>docs/SCHEMA.md</code> and
+<code>docs/DATABASE.md</code> in the source repository.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="administration"><a class="header" href="#administration">Administration</a></h1>
+<p>This chapter covers day-to-day use of the admin console after the service is
+deployed: signing in, creating permission profiles, issuing invite codes,
+reviewing applications, and reading the audit log.</p>
+<h2 id="first-sign-in"><a class="header" href="#first-sign-in">First Sign-In</a></h2>
+<p>There is no separate bootstrap password. The first administrator is simply the
+first person who logs in through the admin-auth IdP and matches the
+authorization rules:</p>
+<ul>
+<li>their groups or roles claim (<code>OIDC_GROUPS_CLAIM</code>) contains <code>OIDC_ADMIN_GROUP</code>;</li>
+<li>or their <code>sub</code> is listed in <code>OIDC_ADMIN_SUBS</code>;</li>
+<li>or their email is listed in <code>OIDC_ADMIN_EMAILS</code>.</li>
+</ul>
+<p>So before the first deployment, make sure your own account already satisfies one
+of these in the admin-auth IdP — most commonly by adding yourself to the admin
+group. Then open <code>/login</code>, complete the OIDC login, and you land on <code>/admin</code>.</p>
+<p>If login succeeds but you are denied admin access, see
+<a href="#login-succeeds-but-admin-access-is-denied">Troubleshooting</a>.</p>
+<h2 id="the-admin-console"><a class="header" href="#the-admin-console">The Admin Console</a></h2>
+<p>The console lives under <code>/admin</code> and has four sections:</p>
+<ul>
+<li><strong>Applications</strong> — the review queue for public registration requests.</li>
+<li><strong>Permission Profiles</strong> — named bundles of target-IdP groups.</li>
+<li><strong>Invites</strong> — registration codes that can auto-approve applications.</li>
+<li><strong>Audit Log</strong> — a read-only record of admin actions.</li>
+</ul>
+<h2 id="recommended-first-run-order"><a class="header" href="#recommended-first-run-order">Recommended First-Run Order</a></h2>
+<p>Create at least one permission profile before anything else. Both issuing an
+invite code and approving an application require a profile, so an empty install
+cannot process registrations until one exists.</p>
+<ol>
+<li>Sign in at <code>/login</code>.</li>
+<li>Create a <strong>Permission Profile</strong> from the target-IdP groups.</li>
+<li>Optionally issue an <strong>Invite</strong> bound to that profile for self-service signup.</li>
+<li>Review incoming <strong>Applications</strong>.</li>
+</ol>
+<h2 id="permission-profiles-1"><a class="header" href="#permission-profiles-1">Permission Profiles</a></h2>
+<p>A permission profile is a server-side bundle of target-IdP groups. The public
+form never submits raw group names; it can only request a profile that you have
+marked public, and the group assignment is resolved during approval.</p>
+<p>On the <strong>Permission Profiles</strong> page you can:</p>
+<ul>
+<li>create a profile from the live target-IdP group catalog;</li>
+<li>mark a profile public and give it a user-facing label so it appears as a
+choice on the public form;</li>
+<li>edit or delete existing profiles.</li>
+</ul>
+<p>Groups listed in <code>PROFILE_GROUP_DENYLIST</code>, plus the value of <code>OIDC_ADMIN_GROUP</code>,
+are never offered here — infrastructure and admin groups cannot be assigned to
+registrants.</p>
+<h2 id="invites"><a class="header" href="#invites">Invites</a></h2>
+<p>Invite codes are the Synapse-style registration tokens. A valid code lets an
+applicant be approved automatically and provisioned into the profile the code is
+bound to.</p>
+<p>On the <strong>Invites</strong> page, create a code with:</p>
+<ul>
+<li><strong>Profile</strong> — required; the profile the code provisions into.</li>
+<li><strong>Code</strong> — optional. Leave blank to auto-generate a random code, or supply
+your own.</li>
+<li><strong>Uses allowed</strong> — optional. Blank means unlimited.</li>
+<li><strong>Expiry</strong> — optional. Blank means it never expires.</li>
+<li><strong>Email constraint</strong> — optional. Restricts the code to one email address.</li>
+<li><strong>Note</strong> — optional free text for your own bookkeeping.</li>
+</ul>
+<p>Each code tracks two counters against <strong>uses allowed</strong>: <code>pending</code> (reservations
+whose provisioning has not finished) and <code>completed</code> (successful signups). You
+can disable a code at any time with its active toggle, or delete it outright.</p>
+<blockquote>
+<p>Invite codes are stored and displayed in cleartext by design, so they remain
+visible to admins on this page. Treat them as secrets anyway: never paste a
+code into a support ticket, chat, or log. See
+<a href="#invite-recovery">Invite Recovery</a> for handling a code whose
+provisioning failed mid-way.</p>
+</blockquote>
+<h2 id="applications"><a class="header" href="#applications">Applications</a></h2>
+<p>The <strong>Applications</strong> page is the review queue. Each entry opens a detail view
+where you can:</p>
+<ul>
+<li><strong>Approve</strong> — choose the permission profile to grant and optionally add a
+note. Approval creates the user in the target IdP with the profile’s groups,
+and the target IdP sends the activation or first-password email. The broker
+does not send a second email on the happy path.</li>
+<li><strong>Reject</strong> — record a decision with a status and optional note without
+provisioning anyone.</li>
+</ul>
+<p>Applications submitted with a valid invite code are auto-approved into the
+code’s profile and appear here already resolved; codeless applications wait
+in the queue for a manual decision.</p>
+<h2 id="audit-log"><a class="header" href="#audit-log">Audit Log</a></h2>
+<p>The <strong>Audit Log</strong> page is a read-only history of admin actions — profile
+changes, invite creation, approvals, and rejections — with the acting admin and
+a timestamp. Use it to answer “who approved this account” or “when was this code
+created”. Invite code values are never written to the audit log, only their
+non-secret metadata (profile, expiry, usage limits).</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="operations"><a class="header" href="#operations">Operations</a></h1>
+<h2 id="health-checks"><a class="header" href="#health-checks">Health Checks</a></h2>
+<p>Use <code>/healthz</code> for a basic process and database check:</p>
+<pre><code class="language-sh">curl -fsS https://register.example.com/healthz
+</code></pre>
+<p>If this fails, inspect the app container logs first:</p>
+<pre><code class="language-sh">docker compose logs --tail=200 app
+</code></pre>
+<h2 id="backups"><a class="header" href="#backups">Backups</a></h2>
+<p>Back up the database before upgrades.</p>
+<p>For SQLite, back up the <code>/data/idp-register.db</code> file from the <code>app-data</code> volume.
+Stop the container or use a SQLite-aware backup method to avoid copying a file
+mid-write.</p>
+<p>For PostgreSQL, use your normal PostgreSQL backup tooling, for example
+<code>pg_dump</code>, scheduled snapshots, or managed database backups.</p>
+<h2 id="public-form-protection-1"><a class="header" href="#public-form-protection-1">Public Form Protection</a></h2>
+<p>Production deployments should enable Turnstile by setting both
+<code>TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET</code>. Setting only one of them is a
+startup configuration error.</p>
+<h2 id="registration-rules-and-terms-1"><a class="header" href="#registration-rules-and-terms-1">Registration Rules and Terms</a></h2>
+<p>Use <code>FORM_RULES_TEXT</code> or <code>FORM_RULES_FILE</code> to show deployment-specific
+registration rules. Use <code>FORM_TERMS_URL</code> to link terms of service. When any of
+these are set, the public form requires consent and the server rejects
+submissions without it.</p>
+<h2 id="invite-recovery"><a class="header" href="#invite-recovery">Invite Recovery</a></h2>
+<p>If provisioning fails after an invite code reserves a slot, the reservation stays
+held. An admin can retry approval after fixing the cause, or reject the
+application to release the pending invite reservation.</p>
+<p>Do not search logs for invite codes. Codes are plaintext by design, but they
+must not be logged or pasted into support tickets.</p>
+<h2 id="secrets"><a class="header" href="#secrets">Secrets</a></h2>
+<p>Plain <code>.env</code> files are supported. Production deployments can also use <code>sops exec-env</code> to inject selected secrets into <code>docker compose</code> without writing
+plaintext secrets to disk.</p>
+<p>Example:</p>
+<pre><code class="language-sh">sops exec-env secrets.enc.yaml 'docker compose up -d'
+</code></pre>
+<p>The included production Compose file forwards these secret variables from the
+process environment into the container:</p>
+<ul>
+<li><code>OIDC_CLIENT_SECRET</code></li>
+<li><code>RAUTHY_API_KEY_SECRET</code></li>
+<li><code>TURNSTILE_SITE_KEY</code></li>
+<li><code>TURNSTILE_SECRET</code></li>
+</ul>
+<p>If you move another secret, such as a PostgreSQL DSN with an embedded password,
+into <code>sops</code>, add it to the Compose <code>environment</code> block as well.</p>
+<h2 id="upgrades"><a class="header" href="#upgrades">Upgrades</a></h2>
+<p>For a pinned image tag:</p>
+<pre><code class="language-sh">docker compose pull
+docker compose up -d
+</code></pre>
+<p>Check <code>/healthz</code>, admin login, group loading, and one test application after the
+upgrade.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h1>
+<h2 id="service-does-not-start"><a class="header" href="#service-does-not-start">Service Does Not Start</a></h2>
+<p>Check the container logs:</p>
+<pre><code class="language-sh">docker compose logs --tail=200 app
+</code></pre>
+<p>Common startup configuration errors:</p>
+<ul>
+<li>missing <code>ORIGIN</code>;</li>
+<li>missing OIDC variables;</li>
+<li>missing Rauthy API variables when <code>PROVISIONER=rauthy</code>;</li>
+<li>only one of <code>TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET</code> is set;</li>
+<li>both <code>FORM_RULES_TEXT</code> and <code>FORM_RULES_FILE</code> are set;</li>
+<li><code>FORM_RULES_FILE</code> points to a file that is not mounted into the container.</li>
+</ul>
+<h2 id="oidc-login-fails"><a class="header" href="#oidc-login-fails">OIDC Login Fails</a></h2>
+<p>Check that <code>OIDC_ISSUER</code> exactly matches the IdP discovery issuer. Rauthy commonly
+requires the trailing slash in <code>/auth/v1/</code>.</p>
+<p>Check that <code>OIDC_REDIRECT_URI</code> exactly matches the client configuration in the
+admin-auth IdP.</p>
+<p>Check that the browser-facing URL, <code>ORIGIN</code>, and <code>OIDC_REDIRECT_URI</code> use the
+same scheme and host. For example:</p>
+<pre><code class="language-dotenv">ORIGIN=https://register.example.com
+OIDC_REDIRECT_URI=https://register.example.com/auth/callback
+</code></pre>
+<h2 id="login-succeeds-but-admin-access-is-denied"><a class="header" href="#login-succeeds-but-admin-access-is-denied">Login Succeeds But Admin Access Is Denied</a></h2>
+<p>The OIDC login worked, but the user did not match admin authorization. Check:</p>
+<ul>
+<li>the groups or roles claim name in <code>OIDC_GROUPS_CLAIM</code>;</li>
+<li>the configured admin group in <code>OIDC_ADMIN_GROUP</code>;</li>
+<li>whether the IdP actually includes the group claim in the ID token;</li>
+<li><code>OIDC_ADMIN_EMAILS</code> or <code>OIDC_ADMIN_SUBS</code> if using allow-lists.</li>
+</ul>
+<h2 id="groups-do-not-load"><a class="header" href="#groups-do-not-load">Groups Do Not Load</a></h2>
+<p>For Rauthy, the provisioning API key must include group read permission. The
+profile editor validates selected groups against the live target-IdP catalog.</p>
+<p>Also check that <code>RAUTHY_API_BASE</code> is the API base, usually
+<code>https://auth.example.com/auth/v1</code>, not just the root website URL.</p>
+<h2 id="public-form-accepts-submissions-without-challenge"><a class="header" href="#public-form-accepts-submissions-without-challenge">Public Form Accepts Submissions Without Challenge</a></h2>
+<p>If both Turnstile variables are unset, challenge verification is disabled. Set
+both <code>TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET</code> for an internet-facing form.</p>
+<p>If the widget appears but every submission fails, confirm that the site key and
+secret belong to the same Turnstile site.</p>
+<h2 id="duplicate-existing-user"><a class="header" href="#duplicate-existing-user">Duplicate Existing User</a></h2>
+<p>If the target IdP reports that the user already exists, the application should
+normally be rejected or handled manually in the IdP. The broker treats successful
+target-IdP user creation as provisioning success; later activation state belongs
+to the IdP.</p>
+<h2 id="form-requires-consent-unexpectedly"><a class="header" href="#form-requires-consent-unexpectedly">Form Requires Consent Unexpectedly</a></h2>
+<p>The consent checkbox appears when any of these are set:</p>
+<ul>
+<li><code>FORM_RULES_TEXT</code></li>
+<li><code>FORM_RULES_FILE</code></li>
+<li><code>FORM_TERMS_URL</code></li>
+</ul>
+<p>Unset all three to remove the consent requirement.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
+<p>The backend is Go. The frontend is a SvelteKit static app built with
+<code>adapter-static</code> and embedded into the Go binary through <code>go:embed</code>.</p>
+<p>The main packages are:</p>
+<ul>
+<li><code>internal/config</code>: environment to typed configuration;</li>
+<li><code>internal/store</code>: portable SQLite/PostgreSQL repositories;</li>
+<li><code>internal/oidcauth</code>: generic OIDC relying party for admin login;</li>
+<li><code>internal/provisioner</code>: target-IdP provisioning interface and implementations;</li>
+<li><code>internal/token</code>: invite-code minting and reservation logic;</li>
+<li><code>internal/application</code>: application state machine and review operations;</li>
+<li><code>internal/web</code>: HTTP handlers and embedded frontend serving.</li>
+</ul>
+<p>The full architecture document remains <code>docs/ARCHITECTURE.md</code> in the source
+repository. The book is the operator-facing rendered documentation and should
+stay aligned with that source.</p>
+<div style="break-before: page; page-break-before: always;"></div><!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<h1 id="decision-records"><a class="header" href="#decision-records">Decision Records</a></h1>
+<p>Architecture decisions are tracked in <code>docs/DECISIONS.md</code> in the source
+repository.</p>
+<p>Key accepted decisions include:</p>
+<ul>
+<li>Go backend instead of full-stack SvelteKit;</li>
+<li>SvelteKit static frontend embedded in the Go binary;</li>
+<li><code>database/sql</code> with portable SQLite/PostgreSQL schema;</li>
+<li>plaintext Synapse-style invite codes;</li>
+<li>a <code>Provisioner</code> interface for target-IdP user creation;</li>
+<li>generic OIDC relying-party admin auth;</li>
+<li>one user-facing email on the happy path;</li>
+<li>permission profiles instead of public group selection;</li>
+<li>Crow CI instead of Forgejo Actions;</li>
+<li>mdBook documentation published from CI.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="version-nav-a6c20a4b.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
