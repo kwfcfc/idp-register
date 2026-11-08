@@ -18,7 +18,8 @@ RUN pnpm install --filter idp-register-web... --frozen-lockfile \
  && pnpm --filter idp-register-web build
 
 # --- Stage 2: build the static Go binary, embedding the SPA ---
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+# Exact patch tag, in lock-step with go.mod's `go` directive and .crow/lib.libsonnet.
+FROM --platform=$BUILDPLATFORM golang:1.26.10-alpine AS build
 WORKDIR /src
 COPY --from=web /src ./
 ARG TARGETOS TARGETARCH

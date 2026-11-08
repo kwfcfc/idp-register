@@ -143,7 +143,13 @@ Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → mu
   (keyed on `pnpm-lock.yaml` + `package.json`) and Go module/build caches (keyed on
   `go.sum`), kept under `.cache/` in the workspace. Helpers in `lib.libsonnet`.
   Operator setup: the server needs `CROW_CACHE_BACKEND` (e.g. `local` +
-  `CROW_CACHE_LOCAL_PATH`); until then the section is ignored.
+  `CROW_CACHE_LOCAL_PATH`). It is configured on crow-ci.goba: `restore-cache` ran in
+  pipeline #14 (2026-11-07, first run: cache miss).
+- ✅ Go image pinned to the exact patch (`golang:1.26.10-alpine`, lib + Dockerfile) in
+  lock-step with go.mod's `go` directive. The agent's docker backend never re-pulls a
+  floating tag, so `golang:1.26-alpine` had silently stayed at 1.26.4, missing the
+  1.26.9/1.26.10 security fixes. Pipeline #14 failed on that. `node:24-alpine`,
+  `postgres:16-alpine` and `alpine:3.24` still float the same way.
 - ⬜ Image builds are uncached: the buildx plugin's daemon lives outside the workspace,
   and the Dockerfile's `COPY . .` before `pnpm install` / `go build` invalidates the
   dependency layers on every commit anyway. Would need lockfile-first `COPY`s plus a

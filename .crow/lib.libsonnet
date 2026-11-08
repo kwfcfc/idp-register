@@ -9,7 +9,13 @@
   labels: { platform: 'linux/arm64' },
 
   // Keep in lock-step with the Dockerfile stage images.
-  goImage: 'golang:1.26-alpine',
+  // Go is pinned to the exact patch release go.mod's `go` directive requires:
+  // the docker backend pulls an image only when it is missing locally, so a
+  // floating tag like `golang:1.26-alpine` stays frozen at whatever the agent
+  // first pulled (1.26.4 here). The golang image sets GOTOOLCHAIN=local, so an
+  // old toolchain fails `go >= …` outright. Bump this, the Dockerfile and
+  // go.mod together.
+  goImage: 'golang:1.26.10-alpine',
   nodeImage: 'node:24-alpine',
   docsImage: 'alpine:3.24',
   postgresImage: 'postgres:16-alpine',
