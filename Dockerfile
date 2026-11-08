@@ -11,7 +11,7 @@ WORKDIR /src
 RUN corepack enable
 COPY . .
 # adapter-static writes the build straight into ../internal/web/assets so the Go
-# stage can embed it (see web/svelte.config.js).
+# stage can embed it (see web/vite.config.ts).
 # --frozen-lockfile: a release image must build from the committed lockfile,
 # never resolve dependencies on the fly.
 RUN pnpm install --filter idp-register-web... --frozen-lockfile \

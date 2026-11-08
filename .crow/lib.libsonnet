@@ -21,7 +21,7 @@
   // e2e.jsonnet dependencies: the IdP under test plus its mail sink, and a
   // small curl image for the readiness gates. Rauthy/mailcrab pins mirror
   // deploy/dev and deploy/e2e.
-  rauthyImage: 'ghcr.io/sebadob/rauthy:0.35.2',
+  rauthyImage: 'ghcr.io/sebadob/rauthy:0.37.2',
   mailcrabImage: 'marlonb/mailcrab:v1.10.0',
   curlImage: 'curlimages/curl:8.23.0',
 

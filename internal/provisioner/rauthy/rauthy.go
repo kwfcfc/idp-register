@@ -6,7 +6,9 @@
 //   - POST /users creates the user and, when SMTP is configured, sends the
 //     initial "new password" activation email.
 //   - POST /users/request_reset is the public password-reset path and requires
-//     a PoW payload in Rauthy 0.35.2, even with an API key.
+//     a PoW payload, even with an API key.
+//
+// Verified against Rauthy 0.35.2 and again against 0.37.2 (2026-11-07).
 package rauthy
 
 import (
@@ -144,7 +146,7 @@ func (c *Client) FindUserByEmail(ctx context.Context, email string) (*provisione
 	return &provisioner.User{ID: u.ID, Email: u.Email, Groups: u.Groups}, true, nil
 }
 
-// CreateUser creates a user. Rauthy 0.35.2 sends the initial set-password
+// CreateUser creates a user. Rauthy (0.35.2–0.37.2) sends the initial set-password
 // email as part of this request when SMTP is configured.
 func (c *Client) CreateUser(ctx context.Context, in provisioner.NewUser) (string, error) {
 	lang := orDefault(in.Language, c.language)
@@ -197,7 +199,7 @@ func (c *Client) setPreferredUsername(ctx context.Context, userID, username stri
 	return err
 }
 
-// InitCredentials is intentionally a no-op for Rauthy 0.35.2. POST /users
+// InitCredentials is intentionally a no-op for Rauthy (0.35.2–0.37.2). POST /users
 // already sends the initial set-password email for newly created users when SMTP
 // is configured.
 //

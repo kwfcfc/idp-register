@@ -94,8 +94,10 @@ migrations/            (later; startup applies schema_*.sql for now)
     `jsonnet` eval → `crow lint --strict .crow/` → optional `crow exec` — never
     validate by pushing and watching the server. The `crow` binary is provided by
     the nix devShell (direnv puts it on PATH; otherwise `nix develop -c crow ...`).
-    The server runs **Crow 7.0**; `flake.nix` overrides the crowci-flake's
-    `crow-cli` (still 6.12) to 7.0.0 so local lint matches the server's major.
+    The server runs **Crow 7.0**, while crowci-flake may trail it (6.12 as of
+    2026-11). We wait for upstream rather than overriding `crow-cli` in
+    `flake.nix`, so 7.0-only lint rules (e.g. the `notify:` deprecation) aren't
+    checked locally until then.
   - Pipelines are authored in **Jsonnet**. Config lives in a **`.crow/`** directory
     (`.jsonnet`/`.libsonnet`/`.yaml`); alternatively a single `.crow.jsonnet`. Crow is
     Woodpecker-derived, so `.woodpecker*` is a fallback Crow also recognizes.

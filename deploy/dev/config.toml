@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Rauthy 0.35.x panics on startup if /app/config.toml does not exist, even when
-# the entire configuration is supplied via environment variables. This file
-# exists to satisfy that requirement; all real values are set as env vars in
-# docker-compose.yml (env overrides/fills the config).
+# Intentionally empty: every value is set as an env var in docker-compose.yml
+# (env overrides/fills the config). Rauthy 0.35.x panicked at startup without
+# this file; 0.37.x boots without it (verified 2026-11-07), so it is kept only
+# as a harmless placeholder. Since 0.36, Rauthy also panics on unknown keys
+# in this file, so don't park stray settings here.

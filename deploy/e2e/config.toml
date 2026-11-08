@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Rauthy 0.35.x panics on startup if its config file does not exist, even when
-# the entire configuration is supplied via environment variables. This stub
-# exists only to satisfy that requirement; every real value is set as an env
-# var by the `rauthy` step in .crow/e2e.jsonnet (env overrides/fills the config).
+# Intentionally empty: every value is set as an env var by the `rauthy` step in
+# .crow/e2e.jsonnet, which starts Rauthy with an explicit `-c config.toml`.
+# Rauthy 0.35.x panicked without a config file; 0.37.x boots without one (when
+# no `-c` is given), but the flag above points here, so keep the file. Since
+# 0.36, Rauthy panics on unknown keys in this file, so keep it empty.

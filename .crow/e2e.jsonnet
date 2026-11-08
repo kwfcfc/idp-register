@@ -26,8 +26,8 @@ local rauthyApiBase = 'http://rauthy:8080/auth/v1';
 local apiKeyName = 'idp-register';
 local apiKeySecret = '75d205eb93bafde5982690d31d35c203d57a7b5c1273d3d9b78879d47b0ddf547da025085dbcd7e4';
 
-// Rauthy is fully env-configured; deploy/e2e/config.toml is only a stub that
-// exists because Rauthy 0.35 panics without a config file (see that file).
+// Rauthy is fully env-configured; deploy/e2e/config.toml is only an empty stub
+// for the explicit `-c config.toml` below (see that file).
 local rauthyEnv = {
   LISTEN_SCHEME: 'http',
   LISTEN_ADDRESS: '0.0.0.0',
@@ -53,7 +53,8 @@ local rauthyEnv = {
 
   SMTP_URL: 'mailcrab',
   SMTP_PORT: '1025',
-  SMTP_DANGER_INSECURE: 'true',
+  // Rauthy >= 0.37 replaced SMTP_DANGER_INSECURE with SMTP_TLS_MODE.
+  SMTP_TLS_MODE: 'danger-insecure',
 };
 
 local appEnv = {

@@ -122,27 +122,56 @@ docker compose -f deploy/dev/docker-compose.yml down -v   # wipes the Rauthy DB
 rm -f idp-register-dev.db                                 # wipes idp-register's DB
 ```
 
-## Verified (Rauthy 0.35.2, arm64 macOS / Docker linux/arm64)
+## Verified (Rauthy 0.37.2, arm64 macOS / Docker linux/arm64, 2026-11-07)
 
-Booted clean: image is multi-arch (no arch issue on Apple Silicon), `clients.json`
-bootstrapped ("Migrated 1 clients"), API key returns 200 on `/auth/v1/users`,
-Rauthy connects to Mailcrab SMTP, and idp-register completes OIDC discovery +
-`/auth/login` 302-redirects to Rauthy.
+Originally verified on 0.35.2 (2026-06-21), then re-run in full on 0.37.2.
 
-Mail behavior verified on 2026-06-21:
+Booted clean: the image is multi-arch (no arch issue on Apple Silicon),
+`clients.json` bootstrapped ("Migrated 1 clients"), the API key returns 200 on
+`/auth/v1/users` and `/auth/v1/groups`, and Rauthy connects to Mailcrab SMTP.
+idp-register completes OIDC discovery, `/auth/login` 302-redirects to Rauthy with
+PKCE S256, and Rauthy serves its login page for that request (it answers 400 for a
+foreign `redirect_uri`). `RAUTHY_INTEGRATION=1 go test ./internal/provisioner/rauthy`
+passes against it.
+
+Mail and API behavior:
 
 - `POST /auth/v1/users` with `roles: []` creates the user and sends one Mailcrab
   message with subject `Rauthy IAM - New Password` and a `type=new_user` set-password
-  link.
+  link. A duplicate email answers `406 {"message":"UNIQUE constraint on: 'email'"}`
+  (mapped to `ErrUserExists`) and sends nothing.
+- `PUT /auth/v1/users/{id}/self/preferred_username` with the API key returns 200.
 - `POST /auth/v1/users/request_reset` with only `email` returns 400
   (`missing field pow`) and sends no mail. This is true both with and without the
   provisioning API key.
 
+On first boot Rauthy may log one `Could not connect to insecure SMTP relay … name
+resolution` error and restart itself in-process. Mailcrab's DNS name isn't up yet
+on a freshly created network; the restart then connects. Harmless.
+
+## Upgrading Rauthy (this harness or a real instance)
+
+- **Step through every minor release.** Rauthy 0.37.x refuses databases older than
+  0.36.0 (`panicked … Your database is too old for this upgrade`), and 0.36.x accepts
+  ≥ 0.35.0. So 0.35.x data must boot once on **0.36.2**, then on **0.37.x**.
+  Rehearsed on a copy of a 0.35.2 volume: 0.36.2 applies DB migrations 28–31, then
+  0.37.2 auto-cleans the hiqlite cache WAL (`v0_15_auto_cache_migration`), and data,
+  the API key and the client all survive. Back up first. An HA cluster must do a full
+  stop/start per step, never a rolling release (see the 0.37.0 release notes).
+- **0.37 config changes that touch us:** `SMTP_DANGER_INSECURE=true` is gone, use
+  `SMTP_TLS_MODE=danger-insecure` instead. Many duration settings became typed
+  durations (`'3d'`, `'30m'`; a bare integer now means **seconds**, e.g.
+  `ML_LT_PWD_FIRST` used to be minutes). Since 0.36, unknown keys in `config.toml`
+  make Rauthy panic.
+- For this throwaway harness, `down -v` + `up -d` (fresh bootstrap) is simpler than
+  stepping the old volume.
+
 ## Gotchas found on first boot (read before migrating to another machine)
 
-1. **`config.toml` is mandatory.** Rauthy 0.35.x **panics** (`Cannot read config file
-   from ./config.toml`) if the file is absent — *even when every value is set via env
-   vars*. We mount an effectively-empty `config.toml`; env vars supply the real config.
+1. **`config.toml`** was mandatory on 0.35.x: it **panicked** (`Cannot read config
+   file from ./config.toml`) without one, even with every value set via env vars.
+   0.37.x boots without it, and we still mount the empty stub. Env vars supply the
+   real config.
 2. **Issuer has a TRAILING SLASH.** Rauthy's `iss` is `http://localhost:8080/auth/v1/`.
    `coreos/go-oidc` requires an exact match, so `OIDC_ISSUER` **must** end with `/`.
    (`RAUTHY_API_BASE` is fine without it — the Go config trims trailing slashes.)
