@@ -16,24 +16,21 @@
         };
       in {
         devShells.default = pkgs.mkShellNoCC {
-          # TEMP WORKAROUND (do not commit): nix's nodejs_24 24.15.0 on
-          # aarch64-darwin has broken worker_threads fd tracking, which spams
-          # "File descriptor ... unmanaged mode" and can SIGKILL in CI.
-          # See https://github.com/NixOS/nixpkgs/issues/525627.
-          # Use Homebrew's node@24 (24.16.0, fixed) + corepack-provided pnpm
-          # (pinned to pnpm@11.4.0 via package.json's packageManager field).
+          # Node 24 matches the node:24-alpine CI/Dockerfile stage; pnpm_11
+          # should match package.json's packageManager pin (CI gets that exact
+          # version through corepack). The former Homebrew node@24 workaround
+          # for NixOS/nixpkgs#525627 is gone: that issue was fixed upstream.
           buildInputs = [
             pkgs.go
             pkgs.gopls
+            pkgs.nodejs_24
+            pkgs.pnpm_11
             pkgs.crow-cli
+            pkgs.go-jsonnet
             pkgs.mdbook
           ]
             ++ pkgs.lib.optionals (system == "aarch64-darwin") [ pkgs.pngpaste ]
             ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.wl-clipboard ];
-          shellHook = ''
-            export PATH="/opt/homebrew/opt/node@24/bin:$PATH"
-            corepack enable >/dev/null 2>&1 || true
-          '';
         };
       });
 }
