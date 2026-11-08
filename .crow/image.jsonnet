@@ -4,7 +4,9 @@
 //
 // Operator prerequisites (one-time, on the Crow server / repo):
 //   - CROW_PLUGINS_PRIVILEGED must include codefloe.com/crow-plugins/docker-buildx
-//     (the plugin starts its own Docker daemon).
+//     (the plugin starts its own Docker daemon). Keep the entry tagless (or
+//     `:2`): lib.buildxPlugin pins an exact tag, which the default `semver`
+//     match type accepts against those, but not against e.g. `:latest`.
 //   - Repo secrets `registry_username` / `registry_password`: a Forgejo
 //     account/token with package:write on gobro/idp-register.
 //   - Repo secrets `cosign_private_key` / `cosign_password`: the same key pair

@@ -22,3 +22,6 @@ tools/
 # sops material must never enter a build context.
 .sops.yaml
 secrets.enc.yaml
+
+# Crow CI build cache (restored into the workspace; see .crow/lib.libsonnet).
+.cache/

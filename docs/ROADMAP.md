@@ -137,6 +137,20 @@ Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → mu
   `registry_password` (Forgejo token with `package:write`).
 - ⬜ Expand to the three M8 packagings as build targets once M8 lands.
 - ✅ Docs job (mdBook, M10) appended after lint/test.
+- ✅ Build cache (Crow ≥ 6.11 `cache:`) on `test.jsonnet`: pnpm store + corepack
+  (keyed on `pnpm-lock.yaml` + `package.json`) and Go module/build caches (keyed on
+  `go.sum`), kept under `.cache/` in the workspace. Helpers in `lib.libsonnet`.
+  Operator setup: the server needs `CROW_CACHE_BACKEND` (e.g. `local` +
+  `CROW_CACHE_LOCAL_PATH`); until then the section is ignored.
+- ⬜ Image builds are uncached: the buildx plugin's daemon lives outside the workspace,
+  and the Dockerfile's `COPY . .` before `pnpm install` / `go build` invalidates the
+  dependency layers on every commit anyway. Would need lockfile-first `COPY`s plus a
+  BuildKit cache export (`cache_from`/`cache_to`).
+- ⬜ Frontend major upgrade: SvelteKit 3 + Vite 8 + vite-plugin-svelte 7 +
+  adapter-static 4 (+ TypeScript 7). The last three low-severity npm advisories
+  (GHSA-pfhg-q3qv-9q6r, GHSA-27mw-82g8-phjj, `cookie` GHSA-pxg6-pf52-xh8x) are only fixed
+  on kit 3. None of them is reachable in our CSR-only SPA (no `use:enhance`,
+  `prerender = false`, no SvelteKit server at runtime).
 
 ### M10 — mdBook documentation site ⬜
 Medium-term documentation target: turn the project docs into a versioned static documentation

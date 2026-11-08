@@ -15,7 +15,7 @@
           overlays = [ crow-ci.overlays.default ];
         };
       in {
-        devShells.default = pkgs.mkShell {
+        devShells.default = pkgs.mkShellNoCC {
           # TEMP WORKAROUND (do not commit): nix's nodejs_24 24.15.0 on
           # aarch64-darwin has broken worker_threads fd tracking, which spams
           # "File descriptor ... unmanaged mode" and can SIGKILL in CI.

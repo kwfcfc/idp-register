@@ -23,3 +23,6 @@ build
 
 # direnv stuff
 /.direnv/
+
+# Crow CI build cache dirs (created in the workspace by CI or `crow exec`).
+/.cache/

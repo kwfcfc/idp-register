@@ -27,7 +27,7 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /ou
  && mkdir /out/data
 
 # --- Stage 3: minimal runtime (~static, single binary) ---
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot
 
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="idp-register" \

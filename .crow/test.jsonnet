@@ -9,6 +9,11 @@ local lib = import 'lib.libsonnet';
     { event: ['push', 'pull_request', 'tag', 'manual'] },
   ],
 
+  // pnpm store + corepack's pnpm for `frontend`, Go module + build caches for
+  // `go`. Restored right after the clone, saved after all steps succeed. See
+  // lib.libsonnet for the key scheme and the server prerequisite.
+  cache: [lib.pnpmCache, lib.goCache],
+
   services: [
     {
       name: 'postgres',
@@ -24,6 +29,7 @@ local lib = import 'lib.libsonnet';
     {
       name: 'frontend',
       image: lib.nodeImage,
+      environment: lib.pnpmCacheEnv,
       commands: [
         'corepack enable',
         'pnpm install --filter idp-register-web... --frozen-lockfile',
@@ -36,7 +42,7 @@ local lib = import 'lib.libsonnet';
     {
       name: 'go',
       image: lib.goImage,
-      environment: {
+      environment: lib.goCacheEnv {
         // Hostname = service name. The store suite runs every test on SQLite
         // and, because this is set, on PostgreSQL too (see forEachStore).
         TEST_POSTGRES_DSN: 'postgres://postgres:test@postgres:5432/idp_register_test?sslmode=disable',

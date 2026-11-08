@@ -5,3 +5,9 @@ packages:
   - web
 allowBuilds:
   esbuild: true
+# Supply-chain guard: never resolve a version published less than a day ago.
+# Hijacked releases (the 2026 ChainDrop / Shai-Hulud-style npm worm waves) are
+# typically detected and unpublished within hours. Only affects resolution
+# (pnpm add/update); --frozen-lockfile installs are unchanged. Exempt an urgent
+# security fix with minimumReleaseAgeExclude instead of lowering this.
+minimumReleaseAge: 1440

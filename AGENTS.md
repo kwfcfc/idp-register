@@ -94,6 +94,8 @@ migrations/            (later; startup applies schema_*.sql for now)
     `jsonnet` eval → `crow lint --strict .crow/` → optional `crow exec` — never
     validate by pushing and watching the server. The `crow` binary is provided by
     the nix devShell (direnv puts it on PATH; otherwise `nix develop -c crow ...`).
+    The server runs **Crow 7.0**; `flake.nix` overrides the crowci-flake's
+    `crow-cli` (still 6.12) to 7.0.0 so local lint matches the server's major.
   - Pipelines are authored in **Jsonnet**. Config lives in a **`.crow/`** directory
     (`.jsonnet`/`.libsonnet`/`.yaml`); alternatively a single `.crow.jsonnet`. Crow is
     Woodpecker-derived, so `.woodpecker*` is a fallback Crow also recognizes.
@@ -102,9 +104,10 @@ migrations/            (later; startup applies schema_*.sql for now)
     `steps: [{ name, image, commands, when?, depends_on?, services? }]`; returning a JSON
     **array** yields multiple workflows. CI metadata via `std.extVar("CI_PIPELINE_EVENT")`
     etc. Share helpers via `.libsonnet` imports. Syntax ref:
-    <https://crowci.dev/v5-13/usage/jsonnet/>.
+    <https://docs.crowci.com/v7-0/usage/jsonnet/>.
   - Current pipeline (`.crow/`): `test.jsonnet` (frontend check/build + Go suite on both
-    DBs) → `image.jsonnet` (buildx multi-arch image, main/tag only; tag builds
+    DBs; Crow build cache for the pnpm store and the Go module/build caches, which
+    needs `CROW_CACHE_BACKEND` on the server) → `image.jsonnet` (buildx multi-arch image, main/tag only; tag builds
     add an SPDX SBOM attestation and a cosign signature — repo secrets
     `cosign_private_key` / `cosign_password`, key pair shared with
     `gobro/simple-git-server`, public key committed at `cosign.pub`) +

@@ -12,7 +12,7 @@
 # see README.md. All secrets here are throwaway test values; never reuse them.
 services:
   mailcrab:
-    image: marlonb/mailcrab:latest
+    image: marlonb/mailcrab:v1.10.0
     container_name: mailcrab-dev
     ports:
       - "1080:1080"
