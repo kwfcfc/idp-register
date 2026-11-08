@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { PageLoad } from './$types';
-import { apiGet } from '$lib/api';
-import type { FormConfig } from '$lib/types';
+import { apiGet } from '#lib/api.js';
+import type { FormConfig } from '#lib/types.js';
 
 // Load the anonymous form configuration (the public service options). A failure
 // here must not block registration: fall back to an empty option list so the

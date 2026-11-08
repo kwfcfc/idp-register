@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { PageLoad } from './$types';
-import { adminGet } from '$lib/api';
-import type { Application, RegistrationToken } from '$lib/types';
+import { adminGet } from '#lib/api.js';
+import type { Application, RegistrationToken } from '#lib/types.js';
 
 // No server-side aggregate endpoint exists; derive the overview from the list
 // endpoints (applications come back newest-first).

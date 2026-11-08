@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import { invalidateAll } from '$app/navigation';
-  import { apiSend, ApiError } from '$lib/api';
-  import type { PermissionProfile } from '$lib/types';
+  import { refreshAll } from '$app/navigation';
+  import { apiSend, ApiError } from '#lib/api.js';
+  import type { PermissionProfile } from '#lib/types.js';
 
   let { data } = $props();
 
@@ -77,7 +77,7 @@
         success = '已创建权限模板。';
       }
       reset();
-      await invalidateAll();
+      await refreshAll();
     } catch (e) {
       error = e instanceof ApiError ? e.message : '保存失败，请检查输入。';
     } finally {
@@ -94,7 +94,7 @@
       await apiSend('DELETE', `/api/admin/profiles/${encodeURIComponent(p.id)}`);
       if (editing === p.id) reset();
       success = '已删除权限模板。';
-      await invalidateAll();
+      await refreshAll();
     } catch (e) {
       // 409 = still referenced by a token/application (FK guard preserves audit).
       error = e instanceof ApiError ? e.message : '删除失败。';

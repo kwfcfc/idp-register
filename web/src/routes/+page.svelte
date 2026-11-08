@@ -2,7 +2,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import { apiSend, ApiError } from '$lib/api';
+  import { apiSend, ApiError } from '#lib/api.js';
 
   let { data } = $props();
 

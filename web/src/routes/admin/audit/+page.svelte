@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import { fmtDate } from '$lib/format';
+  import { fmtDate } from '#lib/format.js';
   let { data } = $props();
 
   // Details is a raw JSON string; pretty-print it, falling back to the raw text.

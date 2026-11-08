@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import Badge from '$lib/components/Badge.svelte';
-  import { invalidateAll } from '$app/navigation';
-  import { apiSend, ApiError } from '$lib/api';
-  import { fmtDate } from '$lib/format';
-  import { tokenStatus, type RegistrationToken } from '$lib/types';
+  import Badge from '#lib/components/Badge.svelte';
+  import { refreshAll } from '$app/navigation';
+  import { apiSend, ApiError } from '#lib/api.js';
+  import { fmtDate } from '#lib/format.js';
+  import { tokenStatus, type RegistrationToken } from '#lib/types.js';
 
   let { data } = $props();
   const now = Date.now();
@@ -62,7 +62,7 @@
       createdCode = created.token;
       token = '';
       note = '';
-      await invalidateAll();
+      await refreshAll();
     } catch (e) {
       createError = e instanceof ApiError ? e.message : '创建失败，请检查输入。';
     } finally {
@@ -72,13 +72,13 @@
 
   async function setActive(t: RegistrationToken, active: boolean) {
     await apiSend('POST', `/api/admin/tokens/${t.id}/active`, { active });
-    await invalidateAll();
+    await refreshAll();
   }
 
   async function remove(t: RegistrationToken) {
     if (!confirm('删除该邀请码？此操作不可撤销。')) return;
     await apiSend('DELETE', `/api/admin/tokens/${t.id}`);
-    await invalidateAll();
+    await refreshAll();
   }
 </script>
 

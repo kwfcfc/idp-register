@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import Badge from '$lib/components/Badge.svelte';
-  import { fmtDate } from '$lib/format';
+  import Badge from '#lib/components/Badge.svelte';
+  import { fmtDate } from '#lib/format.js';
   let { data } = $props();
 
   const filters: [string, string][] = [

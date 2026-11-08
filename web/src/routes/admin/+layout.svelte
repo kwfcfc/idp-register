@@ -2,7 +2,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { apiSend } from '$lib/api';
+  import { apiSend } from '#lib/api.js';
 
   let { data, children } = $props();
 

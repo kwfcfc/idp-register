@@ -1,12 +1,12 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import Badge from '$lib/components/Badge.svelte';
-  import { invalidateAll } from '$app/navigation';
-  import { apiSend, ApiError } from '$lib/api';
-  import { fmtDate } from '$lib/format';
+  import Badge from '#lib/components/Badge.svelte';
+  import { refreshAll } from '$app/navigation';
+  import { apiSend, ApiError } from '#lib/api.js';
+  import { fmtDate } from '#lib/format.js';
 
   let { data } = $props();
-  // `a` tracks data.application reactively so it updates after invalidateAll().
+  // `a` tracks data.application reactively so it updates after refreshAll().
   const a = $derived(data.application);
   const decidable = $derived(a.status === 'pending' || a.status === 'provisioning_failed');
   const failedProvisioning = $derived(a.status === 'provisioning_failed');
@@ -34,7 +34,7 @@
     busy = true;
     try {
       await fn();
-      await invalidateAll();
+      await refreshAll();
       success = ok;
     } catch (e) {
       error = e instanceof ApiError ? e.message : '操作失败，请重试。';

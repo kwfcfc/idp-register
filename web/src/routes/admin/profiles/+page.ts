@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import type { PageLoad } from './$types';
-import { adminGet } from '$lib/api';
-import type { Group, PermissionProfile } from '$lib/types';
+import { adminGet } from '#lib/api.js';
+import type { Group, PermissionProfile } from '#lib/types.js';
 
 export const load: PageLoad = async ({ fetch }) => {
   // Profiles always load. The group catalog is a live call into the target IdP,
