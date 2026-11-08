@@ -115,7 +115,8 @@ second applicant-facing review loop.
   other failure).
 - Unreachable applicant mailboxes and unused activation links are not reconciled
   back into invite counters. Rauthy's first-password magic link has its own
-  lifetime (`magic_link_pwd_first`, default 4320 minutes in Rauthy 0.35.x), and
+  lifetime (`magic_link_pwd_first`, default `3d`; a duration since Rauthy 0.37, 4320
+  minutes before), and
   Rauthy's magic-link cleanup deletes users that never set a password/passkey
   after the unused first-password link expires. In this service, the invite use
   remains `completed` once target-IdP creation succeeds.
@@ -169,7 +170,8 @@ type Provisioner interface {
 }
 ```
 
-- **Rauthy 0.35.2**: `POST /users` creates the user and, when SMTP is configured,
+- **Rauthy 0.35.2–0.37.2** (re-verified on 0.37.2, 2026-11-07): `POST /users` creates
+  the user and, when SMTP is configured,
   sends the initial "New Password" activation email with a `type=new_user` reset link.
   `POST /users/request_reset` is the public password-reset path and requires a `pow`
   payload even with an API key, so the Rauthy `InitCredentials` implementation is a

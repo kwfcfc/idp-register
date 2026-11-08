@@ -85,7 +85,8 @@ create-user + credential-reset APIs.
 is isolated per implementation. `InitCredentials` returns an **optional reset link** so the
 interface fits both "IdP sends its own email" and "IdP returns a link we email" (Kanidm).
 For Rauthy 0.35.2 specifically, the initial credential email is sent by `POST /users`
-when SMTP is configured, and the public `request_reset` endpoint requires PoW.
+when SMTP is configured, and the public `request_reset` endpoint requires PoW. (Both
+re-verified on Rauthy 0.37.2, 2026-11-07.)
 
 **Consequences.** Swappable backends; no Rauthy assumptions leak out. Cost: a small
 abstraction overhead and per-provider conformance tests.

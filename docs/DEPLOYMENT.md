@@ -115,8 +115,9 @@ alone:
   already Rauthy's — this app's `/auth/login`/`/auth/callback` cannot live at the root of
   that domain at all, so prefix-stripping is structurally impossible there.
 
-The planned feature (see ROADMAP M8): `kit.paths.base` from a build-time env, frontend
-links/fetches via `$app/paths` `base`, and a Go `BASE_PATH` config (`http.StripPrefix`,
+The planned feature (see ROADMAP M8): SvelteKit's `paths.base` (a `sveltekit({ paths })`
+option since Kit 3) from a build-time env, frontend links/fetches via `$app/paths`
+`resolve()`/`asset()` (Kit 3 removed the old `base` export), and a Go `BASE_PATH` config (`http.StripPrefix`,
 prefixed redirects, cookie `Path`). `OIDC_REDIRECT_URI` already accommodates the prefixed
 callback. Consequence for packaging: sub-path deployments rebuild the frontend with their
 prefix; published all-in-one images remain root-path. Until then, use a dedicated
@@ -126,7 +127,7 @@ prefix; published all-in-one images remain root-path. Until then, use a dedicate
 
 adapter-static currently writes into `internal/web/assets/spa` (for embedding, Mode 1).
 For a standalone bundle (Mode 3), the output dir should be **parameterized** (e.g. an env
-read in `web/svelte.config.js`) so the same source builds either the embedded artifact or
+read in `web/vite.config.ts`, where SvelteKit 3 takes its config) so the same source builds either the embedded artifact or
 a free-standing `build/` to upload. The build content is otherwise identical when using
 relative API paths (3a) — only cross-origin (3b) needs a different build (`VITE_API_BASE`).
 

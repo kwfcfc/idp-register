@@ -55,7 +55,8 @@ Verified flow:
 - ✅ Public user submits the form selecting that service.
 - ✅ Admin approves with a profile → user is provisioned in Rauthy with the right groups.
   Mailcrab-backed testing showed Rauthy 0.35.2 sends the `type=new_user` set-password
-  email directly from `POST /users` when SMTP is configured.
+  email directly from `POST /users` when SMTP is configured (re-verified on 0.37.2,
+  2026-11-07: one mail per created user, none for a duplicate).
 - ✅ `POST /users/request_reset` tested separately: it requires `pow` and sends no mail
   when only `email` is provided, even with the provisioning API key. The Rauthy
   provisioner therefore treats `InitCredentials` as a no-op for newly created users.
@@ -114,8 +115,9 @@ three ways. Mode 1 (embedded) is done; this milestone adds:
   + configurable post-login redirect + `VITE_API_BASE`.
 - ⬜ **Sub-path deployment (`BASE_PATH`)** — serve the whole app under a path prefix on an
   existing domain (e.g. `id.example.com/register` behind an Nginx `proxy_pass`). Needs:
-  SvelteKit `kit.paths.base` injected at build time; frontend links/API calls rewritten via
-  `$app/paths` `base` (they are hard-coded absolute `/api`/`/admin`/`/auth` today); Go-side
+  SvelteKit `paths.base` (a `sveltekit({ paths })` option in `web/vite.config.ts` since Kit 3)
+  injected at build time; frontend links/API calls rewritten via `$app/paths` `resolve()`
+  (Kit 3 removed `base`; they are hard-coded absolute `/api`/`/admin`/`/auth` today); Go-side
   `BASE_PATH` config with `http.StripPrefix`, prefixed login/callback redirects, and cookie
   `Path`. Constraints to document: the base is **baked into the frontend at build time**
   (sub-path deployments rebuild the SPA, the stock all-in-one image stays root-path), and
@@ -146,11 +148,17 @@ Author `.crow/` pipelines in Jsonnet: lint → test (SQLite + PostgreSQL) → mu
   and the Dockerfile's `COPY . .` before `pnpm install` / `go build` invalidates the
   dependency layers on every commit anyway. Would need lockfile-first `COPY`s plus a
   BuildKit cache export (`cache_from`/`cache_to`).
-- ⬜ Frontend major upgrade: SvelteKit 3 + Vite 8 + vite-plugin-svelte 7 +
-  adapter-static 4 (+ TypeScript 7). The last three low-severity npm advisories
-  (GHSA-pfhg-q3qv-9q6r, GHSA-27mw-82g8-phjj, `cookie` GHSA-pxg6-pf52-xh8x) are only fixed
-  on kit 3. None of them is reachable in our CSR-only SPA (no `use:enhance`,
-  `prerender = false`, no SvelteKit server at runtime).
+- ✅ Frontend major upgrade (2026-11-07): SvelteKit 3.1 + Vite 8.3 (rolldown) +
+  vite-plugin-svelte 7 + adapter-static 4 + TypeScript 6. Config moved from
+  `web/svelte.config.js` into `sveltekit({...})` in `web/vite.config.ts`; `$lib` became the
+  `#lib/*` subpath import (web/package.json `imports`, explicit `.js` extensions);
+  `invalidateAll` became `refreshAll`; tsconfig extends `$app/tsconfig`. This cleared the
+  kit-3-only advisories (GHSA-pfhg-q3qv-9q6r, GHSA-27mw-82g8-phjj, `cookie`). Verified by
+  headless-Chrome DOM diffs against the Kit 2 build (public form, `/login`, `/admin` with
+  and without a session: identical apart from Svelte's empty comment anchors) and a Vite 8
+  dev-server proxy check.
+- ⬜ TypeScript 7 (the Go-native compiler): blocked until `svelte-check` (peer `^5 || ^6`)
+  and SvelteKit (optional peer `^6`) accept it.
 
 ### M10 — mdBook documentation site ⬜
 Medium-term documentation target: turn the project docs into a versioned static documentation
