@@ -316,6 +316,15 @@ be published from the same CI system as the images. Cost: the repository must av
 duplicate documentation by either organizing the existing Markdown into the book or making
 clear which files are source-of-truth and which are rendered/curated book chapters.
 
+**Amendment (2026-11-07): tag trigger.** Versioned docs now publish from **final release
+tags `vMAJOR.MINOR.PATCH`** (e.g. `v0.3.0`) into the release-line directory
+`/vMAJOR.MINOR/`, so each patch release refreshes its line. Pre-releases (`v0.3.0-rc.1`)
+still publish nothing. The original "separate `vMAJOR.MINOR` tag" scheme conflicted with
+the image workflow: `image.jsonnet` builds and pushes on **every** tag, so a docs-only
+`v0.3` tag would rebuild, re-tag and re-sign the image. In practice no such tag was ever
+cut, so the `v0.3.0-rc.1` release published no docs at all. `/stable/` is unchanged: it
+follows `stable` pushes.
+
 ---
 
 ## ADR-0016 — Anti-abuse is a human-verification challenge, not IP rate limiting

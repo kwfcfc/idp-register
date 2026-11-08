@@ -182,9 +182,9 @@ site built with Rust's `mdBook`, published from CI.
   `gh-pages` branch; Forgejo's push mirror syncs `gh-pages` to GitHub, and no GitHub
   Actions workflow is used.
 - ✅ Versioning policy for the first release: Forgejo `stable` pushes publish
-  `/stable/`; release-line tags in the form `vMAJOR.MINOR`
-  (for example `v1.0`) publish frozen docs under `/<tag>/`. Other image tags such as
-  `v1` and `v1.0.0` do not publish duplicate docs. The site root is a generated version
+  `/stable/`; final release tags `vMAJOR.MINOR.PATCH` publish their release line under
+  `/vMAJOR.MINOR/` (amended 2026-11-07, ADR-0015; was a separate `vMAJOR.MINOR` tag, which
+  clashed with the image workflow firing on every tag). Pre-release tags publish no docs. The site root is a generated version
   index, and each mdBook page has a `Versions` link back to it. No `main` preview docs yet.
 
 ### M11 — Pluggable human-verification providers 🧊

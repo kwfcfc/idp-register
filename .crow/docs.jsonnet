@@ -9,14 +9,18 @@
 //   - Forgejo push mirror includes stable and gh-pages.
 //   - Crow repo secrets `registry_username` / `forgejo_token`: a Forgejo
 //     account/token allowed to push the gh-pages branch.
-//   - Versioned documentation publishes only for release-line tags in the form
-//     `vMAJOR.MINOR` (for example `v1.0`). Other tags (`v1`, `v1.0.0`,
-//     pre-releases) skip this workflow entirely via the evaluate filter below.
+//   - Versioned documentation publishes for final release tags
+//     `vMAJOR.MINOR.PATCH` (for example `v0.3.0`) into the release-line
+//     directory `/vMAJOR.MINOR/`, so each patch release refreshes its line.
+//     Pre-releases (`v0.3.0-rc.1`) and other tag shapes skip this workflow via
+//     the evaluate filter below. (Release-line tags such as `v0.3` are not used
+//     for docs: every tag also triggers image.jsonnet, so an extra docs-only tag
+//     would rebuild, re-push and re-sign the image.)
 local lib = import 'lib.libsonnet';
 
 // [.] instead of \. — the evaluate string is parsed by expr-lang, which
 // rejects \. inside double-quoted strings as an invalid char escape.
-local docsReleaseTag = 'CI_COMMIT_TAG matches "^v[0-9]+[.][0-9]+$"';
+local docsReleaseTag = 'CI_COMMIT_TAG matches "^v[0-9]+[.][0-9]+[.][0-9]+$"';
 
 local installTools = [
   'apk add --no-cache ca-certificates curl git tar gzip >/dev/null',
@@ -89,13 +93,16 @@ local pushSettings(message) = {
     {
       name: 'prepare-tag-docs',
       image: lib.docsImage,
-      environment: publishEnv {
-        MDBOOK_OUTPUT__HTML__SITE_URL: '/idp-register/${CI_COMMIT_TAG}/',
-      },
+      environment: publishEnv,
       commands: installTools + [
-        'rm -rf "docs-build/${CI_COMMIT_TAG}"',
-        'mdbook build docs/book -d "docs-build/${CI_COMMIT_TAG}"',
-        'sh tools/docs/prepare-github-pages.sh "docs-build/${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" docs-build/pages',
+        // v0.3.0 -> v0.3 (the tag already passed the vX.Y.Z filter). One shell
+        // session per step, so `line` and the export carry to later commands;
+        // $$ keeps Crow's config-time substitution off the shell variables.
+        'line=$(printf %s "${CI_COMMIT_TAG}" | cut -d. -f1-2)',
+        'export MDBOOK_OUTPUT__HTML__SITE_URL="/idp-register/$${line}/"',
+        'rm -rf "docs-build/$${line}"',
+        'mdbook build docs/book -d "docs-build/$${line}"',
+        'sh tools/docs/prepare-github-pages.sh "docs-build/$${line}" "$${line}" docs-build/pages',
       ],
       depends_on: [],
       when: [{ event: 'tag', evaluate: docsReleaseTag }],

@@ -194,8 +194,8 @@ Do not let an emergency fix live permanently only on `stable`.
 GitHub receives only Forgejo's `stable` and `gh-pages` branches.
 
 `gh-pages` is not a development branch. The Crow CI docs workflow
-(`.crow/docs.jsonnet`) generates it from `stable` pushes and `vMAJOR.MINOR` release
-tags, and GitHub Pages serves it. Do not commit to `gh-pages` manually; the next CI
+(`.crow/docs.jsonnet`) generates it from `stable` pushes (`/stable/`) and final
+`vMAJOR.MINOR.PATCH` release tags (`/vMAJOR.MINOR/`), and GitHub Pages serves it. Do not commit to `gh-pages` manually; the next CI
 publish or mirror sync may overwrite manual changes.
 
 ### Forgejo Push Mirror Configuration
